@@ -4,7 +4,7 @@ export const Home = () => {
         <section className="pt-32 pb-20 bg-white text-gray-800 flex flex-col-reverse md:flex-row items-center justify-center gap-12 px-6">
             <div className="max-w-lg text-center md:text-left">
                 <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-                    Soy <span className="text-cyan-600">Victor Hernandez</span>
+                    Soy <span className="text-cyan-600">Nombre</span>
                 </h1>
                 <p className="mb-6 text-gray-600">
                     Desarrollador web enfocado en experiencias modernas con React y Node. Actualmente creando proyectos propios mientras busco oportunidades.
@@ -18,7 +18,7 @@ export const Home = () => {
                 </a>
             </div>
             <div className="w-60 h-60 rounded-xl overflow-hidden border-4 border-cyan-500 shadow-md">
-                <img src="/foto-cv.png" alt="Tu Foto" className="w-full h-full object-cover" />
+                <img src="/" alt="Tu Foto" className="w-full h-full object-cover" />
             </div>
         </section>
     )
