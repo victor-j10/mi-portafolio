@@ -135,13 +135,15 @@ export const Home = () => {
                                 className="w-full h-48 object-cover"
                             />
                             <div className="p-6">
-                                <h3 className="text-2xl font-semibold text-cyan-400 mb-2">GrizzlyFit Tracker</h3>
+                                <h3 className="text-2xl font-semibold text-cyan-400 mb-2">GrizzlyFit Tracker - (Continúa en desarrollo)</h3>
                                 <p className="text-gray-300 mb-4 text-sm">
                                     App para registrar rutinas, hábitos y progreso personal. Hecha con React, Tailwind y Node.js + Express.
+                                    
+                                    
                                 </p>
                                 <div className='flex justify-around'>
                                     <a
-                                        href="#"
+                                        href="https://grizzlyfit-tracker.vercel.app/"
                                         target="_blank"
                                         className="inline-block bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold px-4 py-2 rounded transition"
                                     >
@@ -149,7 +151,7 @@ export const Home = () => {
                                     </a>
 
                                     <a
-                                        href="#"
+                                        href="https://github.com/victor-j10"
                                         target="_blank"
                                         className="inline-block bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold px-4 py-2 rounded transition"
                                     >
