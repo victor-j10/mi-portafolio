@@ -28,6 +28,26 @@ export const Home = () => {
         { name: "Git", icon: "/icons/git.png" },
 
     ];
+
+    const projects = [
+        {
+            title: "GrizzlyFit Tracker - (Continúa en desarrollo)",
+            description:
+                "App para registrar rutinas, hábitos y progreso personal. Hecha con React, Tailwind y Node.js + Express.",
+            image: "/images/osito-grizzly.png",
+            demo: "https://grizzlyfit-tracker.vercel.app/",
+            github: "https://github.com/victor-j10",
+        },
+        {
+            title: "To Do List",
+            description:
+                "App para registrar tareas. Hecha con Angular, SCSS, Angular Material, MockAPI (Para simular el Backend).",
+            image: "/images/osito-grizzly-manage.png",
+            demo: "https://to-do-list-mu-six-87.vercel.app/",
+            github: "https://github.com/victor-j10",
+        },
+    ];
+
     return (
         <>
             <nav className="fixed top-0 w-full z-50 bg-[#0F172A] text-[#F8FAFC] shadow-lg">
@@ -125,46 +145,48 @@ export const Home = () => {
             {/* PROYECTOS */}
             <section id="projects" className="bg-[#0F172A] text-[#F8FAFC] px-6 py-20">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-3xl font-bold text-cyan-500 mb-12 text-center md:text-left">Proyectos recientes</h2>
+                    <h2 className="text-3xl font-bold text-cyan-500 mb-12 text-center md:text-left">
+                        Proyectos recientes
+                    </h2>
                     <div className="grid md:grid-cols-2 gap-10">
-                        {/* Proyecto individual */}
-                        <div className="bg-[#1E293B] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition duration-300">
-                            <img
-                                src="/images/osito-grizzly.png"
-                                alt="GrizzlyFit Tracker"
-                                className="w-full h-48 object-cover"
-                            />
-                            <div className="p-6">
-                                <h3 className="text-2xl font-semibold text-cyan-400 mb-2">GrizzlyFit Tracker - (Continúa en desarrollo)</h3>
-                                <p className="text-gray-300 mb-4 text-sm">
-                                    App para registrar rutinas, hábitos y progreso personal. Hecha con React, Tailwind y Node.js + Express.
-                                    
-                                    
-                                </p>
-                                <div className='flex justify-around'>
-                                    <a
-                                        href="https://grizzlyfit-tracker.vercel.app/"
-                                        target="_blank"
-                                        className="inline-block bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold px-4 py-2 rounded transition"
-                                    >
-                                        Ver Demo
-                                    </a>
-
-                                    <a
-                                        href="https://github.com/victor-j10"
-                                        target="_blank"
-                                        className="inline-block bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold px-4 py-2 rounded transition"
-                                    >
-                                        Ver GitHub
-                                    </a>
+                        {projects.map((project, index) => (
+                            <div
+                                key={index}
+                                className="bg-[#1E293B] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition duration-300"
+                            >
+                                <img
+                                    src={project.image}
+                                    alt={project.title}
+                                    className="w-full h-48 object-cover"
+                                />
+                                <div className="p-6">
+                                    <h3 className="text-2xl font-semibold text-cyan-400 mb-2">
+                                        {project.title}
+                                    </h3>
+                                    <p className="text-gray-300 mb-4 text-sm">{project.description}</p>
+                                    <div className="flex justify-around">
+                                        <a
+                                            href={project.demo}
+                                            target="_blank"
+                                            className="inline-block bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold px-4 py-2 rounded transition"
+                                        >
+                                            Ver Demo
+                                        </a>
+                                        <a
+                                            href={project.github}
+                                            target="_blank"
+                                            className="inline-block bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold px-4 py-2 rounded transition"
+                                        >
+                                            Ver GitHub
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Puedes duplicar este bloque para más proyectos */}
+                        ))}
                     </div>
                 </div>
             </section>
+
 
             {/* HABILIDADES */}
             <section id="skills" className="bg-[#1E293B] text-[#F8FAFC] px-6 py-20">
