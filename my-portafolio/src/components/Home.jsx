@@ -60,15 +60,21 @@ export const Home = () => {
         { name: "HTML", icon: "/icons/html-5.png" },
         { name: "CSS", icon: "/icons/css-3.png" },
         { name: "JavaScript", icon: "/icons/js.png" },
+        { name: "TypeScript", icon: "/icons/typescript.png" },
         { name: "PHP", icon: "/icons/php.png" },
         { name: "Python", icon: "/icons/python.png" },
         { name: "Java", icon: "/icons/java.png" },
         { name: "Node.js", icon: "/icons/nodo-js.png" },
         { name: "React", icon: "/icons/react.png" },
+        { name: "Next.js", icon: "/icons/nextjs.png" },
         { name: "Angular", icon: "/icons/angular.png" },
+        { name: "VueJs", icon: "/icons/vuejs.png" },
         { name: "Django", icon: "/icons/django.png" },
         { name: "MySQL", icon: "/icons/mysql.png" },
+        { name: "SQL Server", icon: "/icons/sql-server.png" },
+        { name: "PostgreSQL", icon: "/icons/postgresql.png" },
         { name: "Git", icon: "/icons/git.png" },
+        { name: "Github", icon: "/icons/githubweb.png" },
     ];
 
     const projects = [
