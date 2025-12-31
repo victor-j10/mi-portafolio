@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 export const Home = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [selectedExperience, setSelectedExperience] = useState(null);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -18,13 +18,30 @@ export const Home = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Deshabilitado para mejor rendimiento
+    // useEffect(() => {
+    //     const handleMouseMove = (e) => {
+    //         setMousePosition({ x: e.clientX, y: e.clientY });
+    //     };
+    //     window.addEventListener('mousemove', handleMouseMove);
+    //     return () => window.removeEventListener('mousemove', handleMouseMove);
+    // }, []);
+
     useEffect(() => {
-        const handleMouseMove = (e) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                setSelectedExperience(null);
+            }
         };
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
-    }, []);
+        if (selectedExperience) {
+            window.addEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'hidden';
+        }
+        return () => {
+            window.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
+        };
+    }, [selectedExperience]);
 
     const particlesInit = useCallback(async (engine) => {
         await loadSlim(engine);
@@ -33,6 +50,7 @@ export const Home = () => {
     const navItems = [
         { to: 'home', label: 'Inicio' },
         { to: 'about', label: 'Sobre mí' },
+        { to: 'experience', label: 'Experiencia' },
         { to: 'projects', label: 'Proyectos' },
         { to: 'skills', label: 'Habilidades' },
         { to: 'contact', label: 'Contacto' },
@@ -72,22 +90,54 @@ export const Home = () => {
         },
     ];
 
+    const experiences = [
+        {
+            id: 1,
+            period: "Jul, 2023 - Ene, 2024",
+            title: "Practicante Planeación Corporativa",
+            company: "ISA TRANSELCA S.A. E.S.P.",
+            responsibilities: [
+                "Gestión de datos e infraestructura: Desarrollé un aplicativo web en Power Platform para el área ambiental, optimizando el almacenamiento y análisis de indicadores ambientales.",
+                "Automatización de reportes: Implementé dashboards en Power BI para mejorar el análisis de información ambiental y presupuestaria, reduciendo tiempos de procesamiento y facilitando la toma de decisiones.",
+                "Capacitación y soporte: Capacité a los ingenieros de mi área en el uso del aplicativo desarrollado, asegurando una transición efectiva y optimizando el análisis de datos mediante herramientas digitales.",
+                "Cumplimiento de normativas y gestión de información: Gestioné reportes mensuales y trimestrales a la SSPD, garantizando la precisión y entrega en las fechas establecidas.",
+                "Gestión de riesgos: Apoyé la identificación y mapeo de riesgos empresariales, asegurando el cumplimiento de estándares operativos y de seguridad."
+            ],
+            technologies: ['Power BI', 'Tableau', 'Power Apps', 'Office365', 'Entorno Microsoft']
+        },
+        {
+            id: 2,
+            period: "Jul, 2025 - Actual",
+            title: "Desarrollador Full Stack",
+            company: "NESCANIS S.A.S",
+            responsibilities: [
+                "Desarrollo de nuevas funcionalidades para aplicaciones del sector minero, implementando soluciones frontend y backend que optimizan procesos operativos y mejoran el rendimiento del sistema.",
+                "Participación activa y apoyo técnico en el desarrollo de una aplicación de transporte para Vulcano, construida con Next.js y Laravel, creando componentes frontend escalables e implementando APIs REST para la gestión de datos y lógica de negocio.",
+                "Desarrollo y mantenimiento de servicios backend en Laravel, incluyendo: creación y consumo de APIs REST, manejo de autenticación y autorización, integración con bases de datos relacionales, validación de datos y lógica de negocio.",
+                "Mantenimiento y soporte técnico de una aplicación legacy de transporte desarrollada en Vue.js, gestionando tickets de clientes, corrigiendo incidencias y asegurando la estabilidad del sistema.",
+                "Colaboración estrecha con equipos multidisciplinarios (diseño, QA, producto) para el análisis de requerimientos, diseño de soluciones técnicas y entrega oportuna de funcionalidades.",
+                "Implementación de buenas prácticas de desarrollo, incluyendo code review, testing básico y documentación técnica para asegurar la calidad y mantenibilidad del código."
+            ],
+            technologies: ['React', 'VueJs', 'Laravel', 'PHP', 'TypeScript', 'SQL Server', 'NextJs', 'Git', 'Github']
+        }
+    ];
+
     return (
         <>
-            {/* Cursor personalizado con efecto de luz */}
-            <div 
-                className="fixed pointer-events-none z-50 w-6 h-6 rounded-full bg-cyan-400/30 blur-xl transition-transform duration-300 ease-out"
+            {/* Cursor personalizado - Deshabilitado para mejor rendimiento */}
+            {/* <div 
+                className="fixed pointer-events-none z-50 w-6 h-6 rounded-full bg-cyan-400/20 blur-xl transition-transform duration-200 ease-out will-change-transform"
                 style={{
                     left: `${mousePosition.x - 12}px`,
                     top: `${mousePosition.y - 12}px`,
                     transform: 'translate(-50%, -50%)',
                 }}
-            />
+            /> */}
 
             {/* Navbar futurista */}
             <nav className={`fixed top-0 w-full z-40 transition-all duration-500 ${
                 scrolled 
-                    ? 'bg-black/90 backdrop-blur-2xl shadow-[0_0_30px_rgba(6,182,212,0.3)] border-b border-cyan-500/50' 
+                    ? 'bg-black/95 shadow-[0_0_30px_rgba(6,182,212,0.3)] border-b border-cyan-500/50' 
                     : 'bg-transparent'
             }`}>
                 <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-5">
@@ -131,7 +181,7 @@ export const Home = () => {
                 </div>
 
                 {isOpen && (
-                    <div className="md:hidden bg-black/95 backdrop-blur-2xl border-t border-cyan-500/30 shadow-[0_10px_40px_rgba(6,182,212,0.2)]">
+                    <div className="md:hidden bg-black/95 border-t border-cyan-500/30 shadow-[0_10px_40px_rgba(6,182,212,0.2)]">
                         <ul className="flex flex-col items-center text-sm font-bold py-8 space-y-6">
                             {navItems.map((item) => (
                                 <li key={item.to}>
@@ -153,7 +203,7 @@ export const Home = () => {
 
             {/* Hero Section - Diseño radical con efectos de código */}
             <section id="home" className="relative min-h-screen pt-32 pb-20 bg-black text-white flex flex-col md:flex-row items-center justify-center gap-16 px-6 overflow-hidden">
-                {/* Partículas de fondo */}
+                {/* Partículas de fondo - Mínimas para rendimiento */}
                 <Particles
                     id="tsparticles"
                     init={particlesInit}
@@ -164,68 +214,53 @@ export const Home = () => {
                                 value: "transparent",
                             },
                         },
-                        fpsLimit: 120,
+                        fpsLimit: 30,
                         interactivity: {
                             events: {
                                 onClick: {
-                                    enable: true,
-                                    mode: "push",
+                                    enable: false,
                                 },
                                 onHover: {
-                                    enable: true,
-                                    mode: "repulse",
+                                    enable: false,
                                 },
                                 resize: true,
-                            },
-                            modes: {
-                                push: {
-                                    quantity: 4,
-                                },
-                                repulse: {
-                                    distance: 100,
-                                    duration: 0.4,
-                                },
                             },
                         },
                         particles: {
                             color: {
-                                value: ["#06b6d4", "#3b82f6", "#8b5cf6"],
+                                value: "#06b6d4",
                             },
                             links: {
-                                color: "#06b6d4",
-                                distance: 150,
-                                enable: true,
-                                opacity: 0.3,
-                                width: 1,
+                                enable: false,
                             },
                             move: {
                                 direction: "none",
                                 enable: true,
                                 outModes: {
-                                    default: "bounce",
+                                    default: "out",
                                 },
                                 random: false,
-                                speed: 1,
+                                speed: 0.3,
                                 straight: false,
                             },
                             number: {
                                 density: {
                                     enable: true,
-                                    area: 800,
+                                    area: 2000,
                                 },
-                                value: 50,
+                                value: 15,
                             },
                             opacity: {
-                                value: 0.5,
+                                value: 0.3,
                             },
                             shape: {
                                 type: "circle",
                             },
                             size: {
-                                value: { min: 1, max: 3 },
+                                value: 1,
                             },
                         },
-                        detectRetina: true,
+                        detectRetina: false,
                     }}
                 />
 
@@ -234,10 +269,9 @@ export const Home = () => {
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,#06b6d4_1px,transparent_1px),linear-gradient(to_bottom,#06b6d4_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
                 </div>
 
-                {/* Efectos de luz animados */}
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse z-0"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse z-0" style={{ animationDelay: '1s' }}></div>
-                <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse z-0" style={{ animationDelay: '2s' }}></div>
+                {/* Efectos de luz - Simplificados para rendimiento */}
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-2xl z-0"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-2xl z-0"></div>
 
                 {/* Contenido principal */}
                 <div className="max-w-2xl text-center md:text-left z-10 relative">
@@ -246,10 +280,7 @@ export const Home = () => {
                             &lt;Ingeniero de Sistemas /&gt;
                         </span>
                     </div>
-                    <motion.h1 
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
+                    <h1 
                         className="text-4xl md:text-6xl font-black mb-6 leading-tight"
                     >
                         <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(6,182,212,0.5)]">
@@ -258,7 +289,7 @@ export const Home = () => {
                         <span className="block bg-gradient-to-r from-purple-500 via-blue-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(139,92,246,0.5)]">
                             HERNÁNDEZ
                         </span>
-                    </motion.h1>
+                    </h1>
                     <div className="mb-8 relative">
                         <p className="text-xl md:text-2xl text-slate-400 font-light mb-2">
                             Full Stack Developer
@@ -290,58 +321,157 @@ export const Home = () => {
                 </div>
                 
                 {/* Foto con efecto neón extremo */}
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
+                <div 
                     className="relative z-10 group"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 rounded-3xl blur-2xl opacity-60 group-hover:opacity-80 transition-opacity duration-500 animate-pulse"></div>
-                    <motion.div 
-                        whileHover={{ scale: 1.05, rotate: 2 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                        className="relative w-72 h-72 md:w-96 md:h-96 rounded-3xl overflow-hidden border-4 border-cyan-400/50 shadow-[0_0_60px_rgba(6,182,212,0.6)]"
-                    >
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 rounded-3xl blur-xl opacity-40 group-hover:opacity-60 transition-opacity duration-200"></div>
+                    <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-3xl overflow-hidden border-4 border-cyan-400/50 shadow-[0_0_60px_rgba(6,182,212,0.6)] group-hover:scale-[1.02] transition-transform duration-200">
                         <img 
                             src="/foto-cv-2025.png" 
                             alt="Victor Hernández" 
                             className="w-full h-full object-cover" 
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                    </motion.div>
-                    <div className="absolute -inset-4 border-4 border-cyan-400/20 rounded-3xl group-hover:border-cyan-400/40 transition-all duration-500"></div>
-                </motion.div>
+                    </div>
+                    <div className="absolute -inset-4 border-4 border-cyan-400/20 rounded-3xl group-hover:border-cyan-400/40 transition-all duration-200"></div>
+                </div>
             </section>
 
-            {/* Sobre mí - Diseño asimétrico */}
+            {/* Sobre mí - Diseño rediseñado */}
             <section id="about" className="relative bg-gradient-to-b from-black via-slate-900 to-black text-white px-6 py-32">
-                <div className="max-w-6xl mx-auto">
-                    <div className="flex flex-col md:flex-row gap-12 items-center">
-                        <div className="flex-1">
-                            <div className="mb-8">
-                                <h2 className="text-4xl md:text-5xl font-black mb-4">
-                                    <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                                        SOBRE
-                                    </span>
-                                    <br />
-                                    <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                                        MÍ
-                                    </span>
-                                </h2>
-                                <div className="w-24 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-black mb-6">
+                            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+                                SOBRE MÍ
+                            </span>
+                        </h2>
+                        <div className="w-32 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
+                    </div>
+
+                    {/* Grid de información */}
+                    <div className="grid md:grid-cols-2 gap-8 mb-12">
+                        {/* Card Principal - Perfil */}
+                        <div className="md:col-span-2 bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-300">
+                            <div className="flex items-start gap-4 mb-6">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black text-cyan-400 mb-2">Perfil Profesional</h3>
+                                    <p className="text-slate-300 leading-relaxed">
+                                        Ingeniero en Sistemas con experiencia en desarrollo web Full Stack. Manejo varios lenguajes y 
+                                        tecnologías como JavaScript, PHP, Python, HTML, CSS y frameworks como React, Angular y CodeIgniter.
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex-1 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-2 border-cyan-500/30 rounded-3xl p-10 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-all duration-500">
-                            <p className="text-slate-300 text-lg leading-relaxed mb-6">
-                                Desde que descubrí la programación, me apasiona construir cosas que funcionen y tengan impacto. 
-                                He trabajado en proyectos que van desde apps personales hasta sistemas administrativos completos. 
-                                Me gusta trabajar en equipo, escribir código limpio y aprender constantemente.
-                            </p>
-                            <p className="text-slate-300 text-lg leading-relaxed">
-                                Disfruto los retos técnicos, pero también valoro el diseño y la experiencia del usuario. 
-                                Actualmente estoy enfocado en crecer como desarrollador Full Stack, explorando tecnologías 
-                                como React, Express, Firebase y Docker.
-                            </p>
+
+                        {/* Card - Experiencia */}
+                        <div className="bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-300">
+                            <div className="flex items-start gap-4 mb-4">
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-blue-400 mb-2">Experiencia</h3>
+                                    <p className="text-slate-300 text-sm leading-relaxed">
+                                        He trabajado tanto en el frontend como en el backend, desarrollando aplicaciones funcionales, escalables 
+                                        y bien estructuradas. Conozco bases de datos SQL y NoSQL, consumo de APIs, control de versiones con 
+                                        Git y despliegue en entornos locales y en la nube.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Card - Sectores */}
+                        <div className="bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-300">
+                            <div className="flex items-start gap-4 mb-4">
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-purple-400 mb-2">Sectores</h3>
+                                    <p className="text-slate-300 text-sm leading-relaxed">
+                                        Mi experiencia abarca desde el desarrollo de aplicaciones web modernas hasta la automatización de procesos 
+                                        empresariales. He trabajado en proyectos del sector minero, transporte y energía.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card - Filosofía de trabajo */}
+                    <div className="bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-300">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-cyan-400 mb-3">Filosofía de Trabajo</h3>
+                                <p className="text-slate-300 leading-relaxed">
+                                    Me gusta escribir código limpio, aprender nuevas herramientas y crear soluciones prácticas que realmente funcionen. 
+                                    Disfruto trabajando en equipo, enfrentando desafíos técnicos y contribuyendo al éxito de los proyectos con 
+                                    un enfoque en la calidad, el rendimiento y la mantenibilidad del código.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Experiencia Laboral - Línea de tiempo horizontal */}
+            <section id="experience" className="relative bg-black text-white px-6 py-32">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-20">
+                        <h2 className="text-4xl md:text-5xl font-black mb-6">
+                            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+                                EXPERIENCIA LABORAL
+                            </span>
+                        </h2>
+                        <div className="w-32 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
+                    </div>
+
+                    <div className="relative py-12">
+                        <div className="flex flex-col md:flex-row items-stretch justify-center gap-8 md:gap-12 relative">
+                            {experiences.map((experience, index) => (
+                                <motion.div
+                                    key={experience.id}
+                                    initial={{ opacity: 0, y: 50 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.6, delay: index * 0.2 }}
+                                    className="relative flex-1 max-w-md mx-auto md:mx-0"
+                                >
+                                    {/* Punto de conexión - Desktop (arriba del card) */}
+                                    <div className="hidden md:block absolute -top-6 left-1/2 w-5 h-5 bg-cyan-400 rounded-full border-4 border-black shadow-[0_0_20px_rgba(6,182,212,0.8)] z-20 transform -translate-x-1/2"></div>
+                                    
+                                    {/* Punto de conexión - Mobile (izquierda del card) */}
+                                    <div className="md:hidden absolute -left-6 top-8 w-5 h-5 bg-cyan-400 rounded-full border-4 border-black shadow-[0_0_20px_rgba(6,182,212,0.8)] z-20"></div>
+                                    
+                                    <motion.div 
+                                        onClick={() => setSelectedExperience(experience)}
+                                        whileHover={{ scale: 1.02, y: -3 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-200 h-full cursor-pointer"
+                                    >
+                                        <div className="text-cyan-400 font-black text-sm mb-3 uppercase tracking-wider text-center">{experience.period}</div>
+                                        <h3 className="text-2xl font-black text-white mb-3 text-center leading-tight">{experience.title}</h3>
+                                        <div className="text-blue-400 font-bold text-lg text-center mb-4">{experience.company}</div>
+                                        <div className="text-center">
+                                            <span className="text-slate-400 text-sm hover:text-cyan-400 transition-colors">Ver detalles →</span>
+                                        </div>
+                                    </motion.div>
+                                </motion.div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -366,8 +496,8 @@ export const Home = () => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-100px" }}
                                 transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
-                                whileHover={{ y: -12 }}
-                                className="group relative bg-gradient-to-br from-slate-900/80 to-black/80 backdrop-blur-xl border-2 border-cyan-500/30 rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.5)] transition-shadow duration-500"
+                                whileHover={{ y: -8 }}
+                                className="group relative bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.5)] transition-shadow duration-200"
                             >
                                 {/* Efecto de brillo en hover */}
                                 <motion.div 
@@ -382,12 +512,12 @@ export const Home = () => {
                                     <motion.img
                                         src={project.image}
                                         alt={project.title}
-                                        className="w-full h-full object-cover object-center"
+                                        className="w-full h-full object-cover object-center will-change-transform"
                                         initial={{ scale: 1 }}
-                                        whileHover={{ scale: 1.1 }}
+                                        whileHover={{ scale: 1.05 }}
                                         transition={{ 
-                                            duration: 0.6, 
-                                            ease: [0.25, 0.1, 0.25, 1] 
+                                            duration: 0.3, 
+                                            ease: "easeOut"
                                         }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-0"></div>
@@ -460,8 +590,8 @@ export const Home = () => {
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.4, delay: index * 0.05 }}
-                                whileHover={{ y: -12, scale: 1.1 }}
-                                className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-800/80 to-black/80 backdrop-blur-xl border-2 border-cyan-500/20 p-8 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.1)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] transition-all duration-500 hover:border-cyan-400"
+                                whileHover={{ y: -8, scale: 1.05 }}
+                                className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-800/90 to-black/90 border-2 border-cyan-500/20 p-8 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.1)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] transition-all duration-200 hover:border-cyan-400"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/20 group-hover:to-blue-500/20 rounded-2xl transition-all duration-500"></div>
                                 <img 
@@ -493,7 +623,7 @@ export const Home = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                         <a
                             href="mailto:victorjhr2211@gmail.com"
-                            className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/80 to-black/80 backdrop-blur-xl border-2 border-cyan-500/30 p-12 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.6)] transition-all duration-500 hover:-translate-y-4 hover:scale-105"
+                            className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 p-12 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.6)] transition-all duration-200 hover:-translate-y-2 hover:scale-102"
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/20 group-hover:to-blue-500/20 rounded-3xl transition-all duration-500"></div>
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-cyan-400 mb-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 relative z-10 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -508,7 +638,7 @@ export const Home = () => {
                             href="https://www.linkedin.com/in/victor-jose-hernandez-reyes-859509233/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/80 to-black/80 backdrop-blur-xl border-2 border-cyan-500/30 p-12 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.6)] transition-all duration-500 hover:-translate-y-4 hover:scale-105"
+                            className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 p-12 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.6)] transition-all duration-200 hover:-translate-y-2 hover:scale-102"
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/20 group-hover:to-blue-500/20 rounded-3xl transition-all duration-500"></div>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="w-16 h-16 text-cyan-400 mb-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 relative z-10 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]" fill="currentColor">
@@ -522,7 +652,7 @@ export const Home = () => {
                             href="https://github.com/victor-j10"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/80 to-black/80 backdrop-blur-xl border-2 border-cyan-500/30 p-12 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.6)] transition-all duration-500 hover:-translate-y-4 hover:scale-105"
+                            className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 p-12 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.6)] transition-all duration-200 hover:-translate-y-2 hover:scale-102"
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/20 group-hover:to-blue-500/20 rounded-3xl transition-all duration-500"></div>
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-cyan-400 mb-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 relative z-10 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -534,6 +664,78 @@ export const Home = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Modal de Experiencia */}
+            {selectedExperience && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90"
+                    onClick={() => setSelectedExperience(null)}
+                >
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="relative bg-gradient-to-br from-slate-900 to-black border-2 border-cyan-500/30 rounded-3xl p-8 md:p-10 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_80px_rgba(6,182,212,0.5)]"
+                    >
+                        {/* Botón cerrar */}
+                        <button
+                            onClick={() => setSelectedExperience(null)}
+                            className="absolute top-6 right-6 text-slate-400 hover:text-cyan-400 transition-colors z-10"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        {/* Contenido del modal */}
+                        <div className="pr-8">
+                            <div className="text-cyan-400 font-black text-sm mb-3 uppercase tracking-wider">
+                                {selectedExperience.period}
+                            </div>
+                            <h3 className="text-3xl md:text-4xl font-black text-white mb-3">
+                                {selectedExperience.title}
+                            </h3>
+                            <div className="text-blue-400 font-bold text-xl mb-8">
+                                {selectedExperience.company}
+                            </div>
+
+                            <div className="mb-8">
+                                <h4 className="text-cyan-400 font-black text-lg mb-4 uppercase tracking-wider">
+                                    Responsabilidades
+                                </h4>
+                                <ul className="space-y-3">
+                                    {selectedExperience.responsibilities.map((responsibility, index) => (
+                                        <li key={index} className="flex items-start text-slate-300 leading-relaxed">
+                                            <span className="text-cyan-400 mr-3 mt-1">▹</span>
+                                            <span>{responsibility}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div className="pt-6 border-t border-cyan-500/20">
+                                <h4 className="text-slate-400 text-sm mb-4 uppercase tracking-wider">
+                                    Tecnologías utilizadas
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedExperience.technologies.map((tech) => (
+                                        <span
+                                            key={tech}
+                                            className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-cyan-400 text-sm font-bold"
+                                        >
+                                            {tech}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
         </>
     )
 }
