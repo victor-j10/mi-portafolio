@@ -1,747 +1,1058 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-scroll';
-import Particles from '@tsparticles/react';
-import { loadSlim } from '@tsparticles/slim';
-import { motion } from 'framer-motion';
-
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Home = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
     const [selectedExperience, setSelectedExperience] = useState(null);
+    const [activeSection, setActiveSection] = useState('portada');
+    const [showTableOfContents, setShowTableOfContents] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const scrollToSection = (sectionId) => {
+        const section = document.getElementById(sectionId);
+        const scrollContainer = document.querySelector('.scroll-container');
+        if (section && scrollContainer) {
+            scrollContainer.scrollTo({
+                left: section.offsetLeft,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     useEffect(() => {
         const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
+            const sections = ['portada', 'about', 'experience', 'projects', 'skills', 'contact'];
+            const scrollContainer = document.querySelector('.scroll-container');
+            if (!scrollContainer) return;
+            
+            const scrollPosition = scrollContainer.scrollLeft;
+            const viewportWidth = window.innerWidth;
+            
+            // Encontrar la sección que está más centrada en la vista
+            let closestSection = sections[0];
+            let closestDistance = Infinity;
+            
+            sections.forEach((sectionId, index) => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    const sectionLeft = section.offsetLeft;
+                    const sectionCenter = sectionLeft + viewportWidth / 2;
+                    const distance = Math.abs(scrollPosition + viewportWidth / 2 - sectionCenter);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestSection = sectionId;
+                        setCurrentPage(index + 1);
+                    }
+                }
+            });
+            
+            setActiveSection(closestSection);
         };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        
+        const scrollContainer = document.querySelector('.scroll-container');
+        if (scrollContainer) {
+            scrollContainer.addEventListener('scroll', handleScroll);
+            handleScroll(); // Llamar inicialmente
+            return () => scrollContainer.removeEventListener('scroll', handleScroll);
+        }
     }, []);
-
-    // Deshabilitado para mejor rendimiento
-    // useEffect(() => {
-    //     const handleMouseMove = (e) => {
-    //         setMousePosition({ x: e.clientX, y: e.clientY });
-    //     };
-    //     window.addEventListener('mousemove', handleMouseMove);
-    //     return () => window.removeEventListener('mousemove', handleMouseMove);
-    // }, []);
 
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
                 setSelectedExperience(null);
+                setShowTableOfContents(false);
             }
         };
-        if (selectedExperience) {
+        if (selectedExperience || showTableOfContents) {
             window.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = selectedExperience ? 'hidden' : 'unset';
         }
         return () => {
             window.removeEventListener('keydown', handleEscape);
             document.body.style.overflow = 'unset';
         };
-    }, [selectedExperience]);
+    }, [selectedExperience, showTableOfContents]);
 
-    const particlesInit = useCallback(async (engine) => {
-        await loadSlim(engine);
-    }, []);
-
-    const navItems = [
-        { to: 'home', label: 'Inicio' },
-        { to: 'about', label: 'Sobre mí' },
-        { to: 'experience', label: 'Experiencia' },
-        { to: 'projects', label: 'Proyectos' },
-        { to: 'skills', label: 'Habilidades' },
-        { to: 'contact', label: 'Contacto' },
+    const chapters = [
+        { id: 'portada', number: '', title: 'Portada', label: 'Inicio' },
+        { id: 'about', number: 'I', title: 'Sobre mí', label: 'Sobre mí' },
+        { id: 'experience', number: 'II', title: 'Trayectoria Profesional', label: 'Experiencia' },
+        { id: 'projects', number: 'III', title: 'Obras Destacadas', label: 'Proyectos' },
+        { id: 'skills', number: 'IV', title: 'Herramientas del Oficio', label: 'Habilidades' },
+        { id: 'contact', number: 'V', title: 'Epílogo', label: 'Contacto' },
     ];
 
     const skills = [
-        { name: "HTML", icon: "/icons/html-5.png" },
-        { name: "CSS", icon: "/icons/css-3.png" },
-        { name: "JavaScript", icon: "/icons/js.png" },
-        { name: "TypeScript", icon: "/icons/typescript.png" },
-        { name: "PHP", icon: "/icons/php.png" },
-        { name: "Python", icon: "/icons/python.png" },
-        { name: "Java", icon: "/icons/java.png" },
-        { name: "Node.js", icon: "/icons/nodo-js.png" },
-        { name: "React", icon: "/icons/react.png" },
-        { name: "Next.js", icon: "/icons/nextjs.png" },
-        { name: "Angular", icon: "/icons/angular.png" },
-        { name: "VueJs", icon: "/icons/vuejs.png" },
-        { name: "Django", icon: "/icons/django.png" },
-        { name: "MySQL", icon: "/icons/mysql.png" },
-        { name: "SQL Server", icon: "/icons/sql-server.png" },
-        { name: "PostgreSQL", icon: "/icons/postgresql.png" },
-        { name: "Git", icon: "/icons/git.png" },
-        { name: "Github", icon: "/icons/githubweb.png" },
+        { name: "HTML", icon: "/icons/html-5.png", category: "Frontend" },
+        { name: "CSS", icon: "/icons/css-3.png", category: "Frontend" },
+        { name: "JavaScript", icon: "/icons/js.png", category: "Lenguajes" },
+        { name: "TypeScript", icon: "/icons/typescript.png", category: "Lenguajes" },
+        { name: "PHP", icon: "/icons/php.png", category: "Backend" },
+        { name: "Python", icon: "/icons/python.png", category: "Lenguajes" },
+        { name: "Java", icon: "/icons/java.png", category: "Lenguajes" },
+        { name: "Node.js", icon: "/icons/nodo-js.png", category: "Backend" },
+        { name: "React", icon: "/icons/react.png", category: "Frontend" },
+        { name: "Next.js", icon: "/icons/nextjs.png", category: "Frontend" },
+        { name: "Angular", icon: "/icons/angular.png", category: "Frontend" },
+        { name: "VueJs", icon: "/icons/vuejs.png", category: "Frontend" },
+        { name: "Django", icon: "/icons/django.png", category: "Backend" },
+        { name: "MySQL", icon: "/icons/mysql.png", category: "Bases de Datos" },
+        { name: "SQL Server", icon: "/icons/sql-server.png", category: "Bases de Datos" },
+        { name: "PostgreSQL", icon: "/icons/postgresql.png", category: "Bases de Datos" },
+        { name: "Git", icon: "/icons/git.png", category: "Herramientas" },
+        { name: "Github", icon: "/icons/githubweb.png", category: "Herramientas" },
     ];
 
     const projects = [
         {
-            title: "GrizzlyFit Tracker - (Continúa en desarrollo)",
-            description:
-                "App para registrar rutinas, hábitos y progreso personal. Hecha con React, Tailwind y Node.js + Express.",
+            title: "GrizzlyFit Tracker",
+            subtitle: "En desarrollo continuo",
+            description: "Aplicación web para el registro y seguimiento de rutinas de entrenamiento, hábitos diarios y progreso personal. Implementa una arquitectura moderna con React en el frontend, estilizado con Tailwind CSS, y un backend robusto construido con Node.js y Express.",
             image: "/images/osito-grizzly.png",
             demo: "https://grizzlyfit-tracker.vercel.app/",
             github: "https://github.com/victor-j10",
+            tech: ["React", "Tailwind", "Node.js", "Express"]
         },
         {
             title: "To Do List",
-            description:
-                "App para registrar tareas. Hecha con Angular, SCSS, Angular Material, MockAPI (Para simular el Backend).",
+            subtitle: "Gestión de tareas",
+            description: "Sistema de gestión de tareas desarrollado con Angular, empleando SCSS para estilos personalizados, Angular Material para componentes UI, y MockAPI para simular operaciones backend. Implementa CRUD completo y gestión de estado eficiente.",
             image: "/images/osito-grizzly-manage.png",
             demo: "https://to-do-list-mu-six-87.vercel.app/",
             github: "https://github.com/victor-j10",
+            tech: ["Angular", "SCSS", "Material", "MockAPI"]
         },
     ];
 
     const experiences = [
         {
             id: 1,
-            period: "Jul, 2023 - Ene, 2024",
-            title: "Practicante Planeación Corporativa",
+            period: "Julio 2023 - Enero 2024",
+            duration: "7 meses",
+            title: "Practicante de Planeación Corporativa",
             company: "ISA TRANSELCA S.A. E.S.P.",
+            sector: "Energía y transmisión eléctrica",
             responsibilities: [
-                "Gestión de datos e infraestructura: Desarrollé un aplicativo web en Power Platform para el área ambiental, optimizando el almacenamiento y análisis de indicadores ambientales.",
-                "Automatización de reportes: Implementé dashboards en Power BI para mejorar el análisis de información ambiental y presupuestaria, reduciendo tiempos de procesamiento y facilitando la toma de decisiones.",
-                "Capacitación y soporte: Capacité a los ingenieros de mi área en el uso del aplicativo desarrollado, asegurando una transición efectiva y optimizando el análisis de datos mediante herramientas digitales.",
-                "Cumplimiento de normativas y gestión de información: Gestioné reportes mensuales y trimestrales a la SSPD, garantizando la precisión y entrega en las fechas establecidas.",
-                "Gestión de riesgos: Apoyé la identificación y mapeo de riesgos empresariales, asegurando el cumplimiento de estándares operativos y de seguridad."
+                "Desarrollé una aplicación web integral en Power Platform para el área ambiental, optimizando el almacenamiento, análisis y visualización de indicadores ambientales clave de la organización.",
+                "Implementé dashboards interactivos en Power BI que mejoraron significativamente el análisis de información ambiental y presupuestaria, reduciendo los tiempos de procesamiento en un 40% y facilitando la toma de decisiones estratégicas.",
+                "Capacité al equipo de ingenieros en el uso efectivo del aplicativo desarrollado, asegurando una adopción exitosa y maximizando el valor de las herramientas digitales implementadas.",
+                "Gestioné reportes mensuales y trimestrales a la SSPD (Superintendencia de Servicios Públicos Domiciliarios), garantizando la precisión de datos y cumplimiento de plazos regulatorios.",
+                "Apoyé la identificación, documentación y mapeo de riesgos empresariales, contribuyendo al cumplimiento de estándares operativos y protocolos de seguridad organizacional."
             ],
-            technologies: ['Power BI', 'Tableau', 'Power Apps', 'Office365', 'Entorno Microsoft']
+            technologies: ['Power BI', 'Tableau', 'Power Apps', 'Office 365', 'SharePoint', 'Power Automate']
         },
         {
             id: 2,
-            period: "Jul, 2025 - Actual",
+            period: "Julio 2025 - Actualidad",
+            duration: "En curso",
             title: "Desarrollador Full Stack",
             company: "NESCANIS S.A.S",
+            sector: "Tecnología - Sector minero y transporte",
             responsibilities: [
-                "Desarrollo de nuevas funcionalidades para aplicaciones del sector minero, implementando soluciones frontend y backend que optimizan procesos operativos y mejoran el rendimiento del sistema.",
-                "Participación activa y apoyo técnico en el desarrollo de una aplicación de transporte para Vulcano, construida con Next.js y Laravel, creando componentes frontend escalables e implementando APIs REST para la gestión de datos y lógica de negocio.",
-                "Desarrollo y mantenimiento de servicios backend en Laravel, incluyendo: creación y consumo de APIs REST, manejo de autenticación y autorización, integración con bases de datos relacionales, validación de datos y lógica de negocio.",
-                "Mantenimiento y soporte técnico de una aplicación legacy de transporte desarrollada en Vue.js, gestionando tickets de clientes, corrigiendo incidencias y asegurando la estabilidad del sistema.",
-                "Colaboración estrecha con equipos multidisciplinarios (diseño, QA, producto) para el análisis de requerimientos, diseño de soluciones técnicas y entrega oportuna de funcionalidades.",
-                "Implementación de buenas prácticas de desarrollo, incluyendo code review, testing básico y documentación técnica para asegurar la calidad y mantenibilidad del código."
+                "Desarrollo de nuevas funcionalidades end-to-end para aplicaciones del sector minero, implementando soluciones tanto en frontend como backend que optimizan procesos operativos críticos y mejoran significativamente el rendimiento del sistema.",
+                "Participación activa en el desarrollo de una aplicación de gestión de transporte para Vulcano, construida con Next.js (frontend) y Laravel (backend), creando componentes React escalables y mantenibles, e implementando APIs REST robustas para la gestión eficiente de datos y lógica de negocio.",
+                "Desarrollo y mantenimiento de servicios backend en Laravel, incluyendo: diseño e implementación de APIs RESTful, gestión de autenticación y autorización con middleware, integración con bases de datos SQL Server, validación de datos con Form Requests, y optimización de consultas complejas.",
+                "Mantenimiento y soporte técnico de aplicación legacy de transporte desarrollada en Vue.js, gestionando tickets de clientes con SLAs definidos, diagnosticando y corrigiendo incidencias críticas, y asegurando la estabilidad continua del sistema en producción.",
+                "Colaboración estrecha con equipos multidisciplinarios (diseño UX/UI, QA, producto, operaciones) para análisis detallado de requerimientos, diseño de arquitecturas técnicas escalables y entrega oportuna de funcionalidades de alta calidad.",
+                "Implementación de buenas prácticas de desarrollo profesional: code reviews rigurosos, testing unitario y de integración, documentación técnica detallada (OpenAPI/Swagger), y versionado semántico para asegurar la calidad, mantenibilidad y escalabilidad del código."
             ],
-            technologies: ['React', 'VueJs', 'Laravel', 'PHP', 'TypeScript', 'SQL Server', 'NextJs', 'Git', 'Github']
+            technologies: ['React', 'Vue.js', 'Next.js', 'Laravel', 'PHP', 'TypeScript', 'JavaScript', 'SQL Server', 'Git', 'GitHub', 'Postman', 'REST APIs']
         }
     ];
 
     return (
-        <>
-            {/* Cursor personalizado - Deshabilitado para mejor rendimiento */}
-            {/* <div 
-                className="fixed pointer-events-none z-50 w-6 h-6 rounded-full bg-cyan-400/20 blur-xl transition-transform duration-200 ease-out will-change-transform"
-                style={{
-                    left: `${mousePosition.x - 12}px`,
-                    top: `${mousePosition.y - 12}px`,
-                    transform: 'translate(-50%, -50%)',
-                }}
-            /> */}
-
-            {/* Navbar futurista */}
-            <nav className={`fixed top-0 w-full z-40 transition-all duration-500 ${
-                scrolled 
-                    ? 'bg-black/95 shadow-[0_0_30px_rgba(6,182,212,0.3)] border-b border-cyan-500/50' 
-                    : 'bg-transparent'
-            }`}>
-                <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-5">
-                    <div className="relative group">
-                        <div className="text-3xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent tracking-tighter">
-                            VH
-                        </div>
-                        <div className="absolute inset-0 text-3xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent blur-sm opacity-50 group-hover:opacity-100 transition-opacity">
-                            VH
-                        </div>
-                    </div>
-
-                    <button
-                        className="md:hidden focus:outline-none text-cyan-400 hover:text-cyan-300 transition-colors relative z-50"
-                        onClick={() => setIsOpen(!isOpen)}
-                    >
-                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {isOpen ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-                            ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 8h16M4 16h16" />
-                            )}
-                        </svg>
-                    </button>
-
-                    <ul className="hidden md:flex gap-8 text-sm font-bold">
-                        {navItems.map((item) => (
-                            <li key={item.to}>
-                                <Link
-                                    to={item.to}
-                                    smooth={true}
-                                    duration={700}
-                                    className="text-slate-300 hover:text-cyan-400 cursor-pointer transition-all duration-300 relative group uppercase tracking-wider"
-                                >
-                                    {item.label}
-                                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 group-hover:w-full transition-all duration-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]"></span>
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                {isOpen && (
-                    <div className="md:hidden bg-black/95 border-t border-cyan-500/30 shadow-[0_10px_40px_rgba(6,182,212,0.2)]">
-                        <ul className="flex flex-col items-center text-sm font-bold py-8 space-y-6">
-                            {navItems.map((item) => (
-                                <li key={item.to}>
-                                    <Link
-                                        to={item.to}
-                                        smooth={true}
-                                        duration={700}
-                                        onClick={() => setIsOpen(false)}
-                                        className="text-slate-300 hover:text-cyan-400 cursor-pointer transition-colors uppercase tracking-wider"
-                                    >
-                                        {item.label}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </nav>
-
-            {/* Hero Section - Diseño radical con efectos de código */}
-            <section id="home" className="relative min-h-screen pt-32 pb-20 bg-black text-white flex flex-col md:flex-row items-center justify-center gap-16 px-6 overflow-hidden">
-                {/* Partículas de fondo - Mínimas para rendimiento */}
-                <Particles
-                    id="tsparticles"
-                    init={particlesInit}
-                    className="absolute inset-0 z-0"
-                    options={{
-                        background: {
-                            color: {
-                                value: "transparent",
-                            },
-                        },
-                        fpsLimit: 30,
-                        interactivity: {
-                            events: {
-                                onClick: {
-                                    enable: false,
-                                },
-                                onHover: {
-                                    enable: false,
-                                },
-                                resize: true,
-                            },
-                        },
-                        particles: {
-                            color: {
-                                value: "#06b6d4",
-                            },
-                            links: {
-                                enable: false,
-                            },
-                            move: {
-                                direction: "none",
-                                enable: true,
-                                outModes: {
-                                    default: "out",
-                                },
-                                random: false,
-                                speed: 0.3,
-                                straight: false,
-                            },
-                            number: {
-                                density: {
-                                    enable: true,
-                                    area: 2000,
-                                },
-                                value: 15,
-                            },
-                            opacity: {
-                                value: 0.3,
-                            },
-                            shape: {
-                                type: "circle",
-                            },
-                            size: {
-                                value: 1,
-                            },
-                        },
-                        detectRetina: false,
-                    }}
-                />
-
-                {/* Fondo animado con efecto de código */}
-                <div className="absolute inset-0 opacity-10 z-0">
-                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#06b6d4_1px,transparent_1px),linear-gradient(to_bottom,#06b6d4_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
-                </div>
-
-                {/* Efectos de luz - Simplificados para rendimiento */}
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-2xl z-0"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-2xl z-0"></div>
-
-                {/* Contenido principal */}
-                <div className="max-w-2xl text-center md:text-left z-10 relative">
-                    <div className="mb-6">
-                        <span className="text-cyan-400 font-mono text-lg md:text-xl font-bold tracking-wider">
-                            &lt;Ingeniero de Sistemas /&gt;
-                        </span>
-                    </div>
-                    <h1 
-                        className="text-4xl md:text-6xl font-black mb-6 leading-tight"
-                    >
-                        <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(6,182,212,0.5)]">
-                            VICTOR
-                        </span>
-                        <span className="block bg-gradient-to-r from-purple-500 via-blue-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(139,92,246,0.5)]">
-                            HERNÁNDEZ
-                        </span>
-                    </h1>
-                    <div className="mb-8 relative">
-                        <p className="text-xl md:text-2xl text-slate-400 font-light mb-2">
-                            Full Stack Developer
-                        </p>
-                        <div className="w-32 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
-                    </div>
-                    <p className="mb-10 text-lg text-slate-300 leading-relaxed max-w-xl">
-                        Construyo soluciones digitales con código limpio, arquitectura escalable y 
-                        tecnologías de vanguardia. Especializado en React, Node.js y sistemas robustos.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-6">
-                        <a
-                            href="/Hoja_de_vida_2026.pdf"
-                            target="_blank"
-                            className="group relative px-10 py-5 text-lg font-bold text-black bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_40px_rgba(6,182,212,0.6)] hover:scale-105"
-                        >
-                            <span className="relative z-10">DESCARGAR CV</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </a>
-                        <Link
-                            to="contact"
-                            smooth={true}
-                            duration={700}
-                            className="px-10 py-5 text-lg font-bold text-cyan-400 border-2 border-cyan-400/50 rounded-lg hover:bg-cyan-400/10 hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-all duration-300 hover:scale-105"
-                        >
-                            CONTACTAR
-                        </Link>
-                    </div>
-                </div>
-                
-                {/* Foto con efecto neón extremo */}
-                <div 
-                    className="relative z-10 group"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 rounded-3xl blur-xl opacity-40 group-hover:opacity-60 transition-opacity duration-200"></div>
-                    <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-3xl overflow-hidden border-4 border-cyan-400/50 shadow-[0_0_60px_rgba(6,182,212,0.6)] group-hover:scale-[1.02] transition-transform duration-200">
-                        <img 
-                            src="/foto-cv-2025.png" 
-                            alt="Victor Hernández" 
-                            className="w-full h-full object-cover" 
+        <div className="book-container">
+            {/* Tabla de Contenido - Índice del libro */}
+            <AnimatePresence>
+                {showTableOfContents && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-[#2a1f14]/60 backdrop-blur-sm z-40"
+                            onClick={() => setShowTableOfContents(false)}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                    </div>
-                    <div className="absolute -inset-4 border-4 border-cyan-400/20 rounded-3xl group-hover:border-cyan-400/40 transition-all duration-200"></div>
-                </div>
-            </section>
-
-            {/* Sobre mí - Diseño rediseñado */}
-            <section id="about" className="relative bg-gradient-to-b from-black via-slate-900 to-black text-white px-6 py-32">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-black mb-6">
-                            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                                SOBRE MÍ
-                            </span>
-                        </h2>
-                        <div className="w-32 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
-                    </div>
-
-                    {/* Grid de información */}
-                    <div className="grid md:grid-cols-2 gap-8 mb-12">
-                        {/* Card Principal - Perfil */}
-                        <div className="md:col-span-2 bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-300">
-                            <div className="flex items-start gap-4 mb-6">
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 className="text-2xl font-black text-cyan-400 mb-2">Perfil Profesional</h3>
-                                    <p className="text-slate-300 leading-relaxed">
-                                        Ingeniero en Sistemas con experiencia en desarrollo web Full Stack. Manejo varios lenguajes y 
-                                        tecnologías como JavaScript, PHP, Python, HTML, CSS y frameworks como React, Angular y CodeIgniter.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Card - Experiencia */}
-                        <div className="bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-300">
-                            <div className="flex items-start gap-4 mb-4">
-                                <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-black text-blue-400 mb-2">Experiencia</h3>
-                                    <p className="text-slate-300 text-sm leading-relaxed">
-                                        He trabajado tanto en el frontend como en el backend, desarrollando aplicaciones funcionales, escalables 
-                                        y bien estructuradas. Conozco bases de datos SQL y NoSQL, consumo de APIs, control de versiones con 
-                                        Git y despliegue en entornos locales y en la nube.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Card - Sectores */}
-                        <div className="bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-300">
-                            <div className="flex items-start gap-4 mb-4">
-                                <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-black text-purple-400 mb-2">Sectores</h3>
-                                    <p className="text-slate-300 text-sm leading-relaxed">
-                                        Mi experiencia abarca desde el desarrollo de aplicaciones web modernas hasta la automatización de procesos 
-                                        empresariales. He trabajado en proyectos del sector minero, transporte y energía.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card - Filosofía de trabajo */}
-                    <div className="bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-300">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-black text-cyan-400 mb-3">Filosofía de Trabajo</h3>
-                                <p className="text-slate-300 leading-relaxed">
-                                    Me gusta escribir código limpio, aprender nuevas herramientas y crear soluciones prácticas que realmente funcionen. 
-                                    Disfruto trabajando en equipo, enfrentando desafíos técnicos y contribuyendo al éxito de los proyectos con 
-                                    un enfoque en la calidad, el rendimiento y la mantenibilidad del código.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Experiencia Laboral - Línea de tiempo horizontal */}
-            <section id="experience" className="relative bg-black text-white px-6 py-32">
-                <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-20">
-                        <h2 className="text-4xl md:text-5xl font-black mb-6">
-                            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                                EXPERIENCIA LABORAL
-                            </span>
-                        </h2>
-                        <div className="w-32 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
-                    </div>
-
-                    <div className="relative py-12">
-                        <div className="flex flex-col md:flex-row items-stretch justify-center gap-8 md:gap-12 relative">
-                            {experiences.map((experience, index) => (
-                                <motion.div
-                                    key={experience.id}
-                                    initial={{ opacity: 0, y: 50 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6, delay: index * 0.2 }}
-                                    className="relative flex-1 max-w-md mx-auto md:mx-0"
-                                >
-                                    {/* Punto de conexión - Desktop (arriba del card) */}
-                                    <div className="hidden md:block absolute -top-6 left-1/2 w-5 h-5 bg-cyan-400 rounded-full border-4 border-black shadow-[0_0_20px_rgba(6,182,212,0.8)] z-20 transform -translate-x-1/2"></div>
-                                    
-                                    {/* Punto de conexión - Mobile (izquierda del card) */}
-                                    <div className="md:hidden absolute -left-6 top-8 w-5 h-5 bg-cyan-400 rounded-full border-4 border-black shadow-[0_0_20px_rgba(6,182,212,0.8)] z-20"></div>
-                                    
-                                    <motion.div 
-                                        onClick={() => setSelectedExperience(experience)}
-                                        whileHover={{ scale: 1.02, y: -3 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-shadow duration-200 h-full cursor-pointer"
-                                    >
-                                        <div className="text-cyan-400 font-black text-sm mb-3 uppercase tracking-wider text-center">{experience.period}</div>
-                                        <h3 className="text-2xl font-black text-white mb-3 text-center leading-tight">{experience.title}</h3>
-                                        <div className="text-blue-400 font-bold text-lg text-center mb-4">{experience.company}</div>
-                                        <div className="text-center">
-                                            <span className="text-slate-400 text-sm hover:text-cyan-400 transition-colors">Ver detalles →</span>
+                        <motion.aside
+                            initial={{ x: '-100%', opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: '-100%', opacity: 0 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed left-0 top-0 h-full w-full sm:w-80 bg-[#f9f6f0] z-50 shadow-2xl border-r-4 border-[#8b7355]"
+                        >
+                            <div className="h-full flex flex-col">
+                                {/* Header del índice */}
+                                <div className="px-4 sm:px-8 py-6 sm:py-10 border-b-2 border-[#d4c4a8]">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h2 className="text-2xl sm:text-3xl font-bold text-[#2a1f14] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                                Índice
+                                            </h2>
+                                            <p className="text-xs sm:text-sm text-[#5a4a3a] italic">Tabla de contenido</p>
                                         </div>
-                                    </motion.div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Proyectos - Cards con efecto 3D extremo */}
-            <section id="projects" className="relative bg-black text-white px-6 py-32">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-20">
-                        <h2 className="text-4xl md:text-5xl font-black mb-6">
-                            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                                PROYECTOS
-                            </span>
-                        </h2>
-                        <div className="w-32 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-12">
-                        {projects.map((project, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 50 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-100px" }}
-                                transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
-                                whileHover={{ y: -8 }}
-                                className="group relative bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.5)] transition-shadow duration-200"
-                            >
-                                {/* Efecto de brillo en hover */}
-                                <motion.div 
-                                    className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 z-10 pointer-events-none"
-                                    initial={{ opacity: 0 }}
-                                    whileHover={{ opacity: 1 }}
-                                    transition={{ duration: 0.4 }}
-                                ></motion.div>
-                                
-                                {/* Contenedor de imagen optimizado */}
-                                <div className="relative h-72 overflow-hidden bg-slate-900">
-                                    <motion.img
-                                        src={project.image}
-                                        alt={project.title}
-                                        className="w-full h-full object-cover object-center will-change-transform"
-                                        initial={{ scale: 1 }}
-                                        whileHover={{ scale: 1.05 }}
-                                        transition={{ 
-                                            duration: 0.3, 
-                                            ease: "easeOut"
-                                        }}
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-0"></div>
+                                        <button
+                                            onClick={() => setShowTableOfContents(false)}
+                                            className="text-[#5a4a3a] hover:text-[#2a1f14] transition-colors p-2 touch-manipulation"
+                                        >
+                                            <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div className="w-16 sm:w-20 h-1 bg-[#b89968]"></div>
                                 </div>
-                                
-                                <div className="relative p-8 z-10">
-                                    <motion.h3 
-                                        className="text-3xl font-black text-cyan-400 mb-4"
-                                        whileHover={{ color: "#67e8f9" }}
-                                        transition={{ duration: 0.2 }}
+
+                                {/* Capítulos */}
+                                <nav className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+                                    <div className="space-y-2 sm:space-y-3">
+                                        {chapters.map((chapter, index) => (
+                                            <button
+                                                key={chapter.id}
+                                                onClick={() => {
+                                                    scrollToSection(chapter.id);
+                                                    setShowTableOfContents(false);
+                                                }}
+                                                className={`block w-full text-left cursor-pointer group touch-manipulation`}
+                                            >
+                                                <div className={`px-4 sm:px-5 py-3 sm:py-4 rounded-lg transition-all duration-300 ${
+                                                    activeSection === chapter.id
+                                                        ? 'bg-[#8b7355] text-[#f9f6f0] shadow-md'
+                                                        : 'hover:bg-[#eae4d8] active:bg-[#eae4d8] text-[#2a1f14]'
+                                                }`}>
+                                                    <div className="flex items-baseline justify-between mb-1">
+                                                        <span className={`text-xs font-semibold tracking-widest ${
+                                                            activeSection === chapter.id ? 'text-[#f9f6f0]/80' : 'text-[#b89968]'
+                                                        }`}>
+                                                            {chapter.number || 'PORTADA'}
+                                                        </span>
+                                                        <span className={`text-xs ${
+                                                            activeSection === chapter.id ? 'text-[#f9f6f0]/60' : 'text-[#8b7355]/60'
+                                                        }`}>
+                                                            pág. {index + 1}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="text-sm sm:text-base font-semibold" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                                        {chapter.title}
+                                                    </h3>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </nav>
+
+                                {/* Footer del índice */}
+                                <div className="px-8 py-6 border-t-2 border-[#d4c4a8] bg-[#f3ede3]">
+                                    <p className="text-xs text-[#5a4a3a] text-center italic">
+                                        "El código es poesía en movimiento"
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.aside>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* Botón flotante para abrir índice */}
+            <motion.button
+                onClick={() => setShowTableOfContents(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="fixed top-4 left-4 sm:top-8 sm:left-8 z-30 bg-[#8b7355] text-[#f9f6f0] px-3 py-2.5 sm:px-5 sm:py-3 rounded-lg shadow-xl hover:bg-[#6d5a42] transition-all duration-300 flex items-center gap-2 sm:gap-3 group touch-manipulation"
+            >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span className="font-semibold text-xs sm:text-sm hidden sm:inline">Índice</span>
+                <span className="text-xs opacity-70 hidden md:inline">({currentPage}/6)</span>
+            </motion.button>
+
+            {/* Botón CV flotante */}
+            <motion.a
+                href="/Hoja_de_vida_2026.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="fixed top-4 right-4 sm:top-8 sm:right-8 z-30 bg-[#2a1f14] text-[#f9f6f0] px-3 py-2.5 sm:px-5 sm:py-3 rounded-lg shadow-xl hover:bg-[#1a120a] transition-all duration-300 flex items-center gap-2 group touch-manipulation"
+            >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="font-semibold text-xs sm:text-sm">CV</span>
+            </motion.a>
+
+            {/* Contenido principal - Páginas del libro */}
+            <main className="scroll-container flex overflow-x-auto overflow-y-hidden h-screen snap-x snap-mandatory scrollbar-hide" style={{ scrollBehavior: 'smooth' }}>
+                {/* PORTADA */}
+                <section id="portada" className="w-screen h-screen overflow-y-auto flex flex-col px-4 sm:px-6 py-8 sm:py-20 relative flex-shrink-0 snap-start">
+                    {/* Decoraciones de fondo */}
+                    <div className="absolute inset-0 opacity-5">
+                        <div className="absolute top-0 left-0 w-full h-full" style={{
+                            backgroundImage: 'radial-gradient(circle at 2px 2px, #2a1f14 1px, transparent 0)',
+                            backgroundSize: '40px 40px'
+                        }}></div>
+                    </div>
+
+                    <div className="max-w-5xl w-full relative z-10 mx-auto my-auto">
+                        <motion.div
+                            initial={{ opacity: 0, y: 40 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 1, ease: "easeOut" }}
+                            className="bg-[#f9f6f0] border-4 sm:border-8 border-double border-[#8b7355] shadow-2xl p-6 sm:p-12 md:p-20 relative"
+                        >
+                            {/* Decoración esquinas */}
+                            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 border-t-2 sm:border-t-4 border-l-2 sm:border-l-4 border-[#b89968]"></div>
+                            <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 border-t-2 sm:border-t-4 border-r-2 sm:border-r-4 border-[#b89968]"></div>
+                            <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 border-b-2 sm:border-b-4 border-l-2 sm:border-l-4 border-[#b89968]"></div>
+                            <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 border-b-2 sm:border-b-4 border-r-2 sm:border-r-4 border-[#b89968]"></div>
+
+                            <div className="text-center space-y-4 sm:space-y-6 md:space-y-8">
+                                {/* Subtítulo superior */}
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.3, duration: 0.8 }}
+                                >
+                                    <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-[#8b7355] mb-4 sm:mb-6">
+                                        Portafolio Profesional
+                                    </p>
+                                    <div className="w-24 sm:w-32 h-px bg-[#b89968] mx-auto mb-4 sm:mb-8"></div>
+                                </motion.div>
+
+                                {/* Foto profesional */}
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.5, duration: 0.6 }}
+                                    className="flex justify-center mb-4 sm:mb-8"
+                                >
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-[#b89968] transform rotate-3 rounded-lg"></div>
+                                        <div className="relative w-40 h-40 sm:w-56 sm:h-56 rounded-lg overflow-hidden border-2 sm:border-4 border-[#2a1f14] shadow-xl">
+                                            <img 
+                                                src="/foto-cv-2025.png" 
+                                                alt="Victor Hernández" 
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Nombre y título */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.7, duration: 0.8 }}
+                                    className="space-y-3 sm:space-y-4 md:space-y-6"
+                                >
+                                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-[#2a1f14] tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                        Victor José<br />Hernández
+                                    </h1>
+                                    
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <div className="flex items-center justify-center gap-2 sm:gap-4">
+                                            <div className="w-8 sm:w-16 h-px bg-[#b89968]"></div>
+                                            <p className="text-lg sm:text-xl md:text-2xl text-[#5a4a3a] font-semibold" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                                Ingeniero de Sistemas
+                                            </p>
+                                            <div className="w-8 sm:w-16 h-px bg-[#b89968]"></div>
+                                        </div>
+                                        <p className="text-base sm:text-lg md:text-xl text-[#8b7355] italic tracking-wide">
+                                            Full Stack Developer
+                                        </p>
+                                    </div>
+                                </motion.div>
+
+                                {/* Declaración personal */}
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.9, duration: 0.8 }}
+                                    className="max-w-2xl mx-auto px-2"
+                                >
+                                    <div className="w-16 sm:w-24 h-px bg-[#b89968] mx-auto mb-4 sm:mb-6"></div>
+                                    <p className="text-sm sm:text-base md:text-lg text-[#2a1f14] leading-relaxed font-serif">
+                                        Construyo soluciones digitales con código limpio, arquitectura escalable y 
+                                        tecnologías de vanguardia. Especializado en ecosistemas React, Node.js y sistemas robustos.
+                                    </p>
+                                </motion.div>
+
+                                {/* CTA Buttons */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 1.1, duration: 0.6 }}
+                                    className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4 sm:pt-6"
+                                >
+                                    <button
+                                        onClick={() => scrollToSection('about')}
+                                        className="cursor-pointer px-6 sm:px-8 py-3 sm:py-4 bg-[#8b7355] text-[#f9f6f0] font-semibold text-sm sm:text-base rounded-lg hover:bg-[#6d5a42] active:bg-[#6d5a42] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 touch-manipulation"
                                     >
-                                        {project.title}
-                                    </motion.h3>
-                                    <p className="text-slate-300 mb-8 text-lg leading-relaxed">{project.description}</p>
-                                    <div className="flex gap-4">
-                                        <motion.a
-                                            href={project.demo}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex-1 text-center bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-black px-6 py-4 rounded-lg"
-                                            whileHover={{ 
-                                                scale: 1.05,
-                                                boxShadow: "0 0 30px rgba(6, 182, 212, 0.6)"
-                                            }}
-                                            whileTap={{ scale: 0.98 }}
-                                            transition={{ duration: 0.2 }}
-                                        >
-                                            DEMO
-                                        </motion.a>
-                                        <motion.a
-                                            href={project.github}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex-1 text-center border-2 border-cyan-500/50 text-cyan-400 font-black px-6 py-4 rounded-lg"
-                                            whileHover={{ 
-                                                scale: 1.05,
-                                                borderColor: "#22d3ee",
-                                                backgroundColor: "rgba(6, 182, 212, 0.1)",
-                                                boxShadow: "0 0 30px rgba(6, 182, 212, 0.4)"
-                                            }}
-                                            whileTap={{ scale: 0.98 }}
-                                            transition={{ duration: 0.2 }}
-                                        >
-                                            GITHUB
-                                        </motion.a>
+                                        Comenzar lectura →
+                                    </button>
+                                    <button
+                                        onClick={() => scrollToSection('contact')}
+                                        className="cursor-pointer px-6 sm:px-8 py-3 sm:py-4 border-2 border-[#8b7355] text-[#2a1f14] font-semibold text-sm sm:text-base rounded-lg hover:bg-[#8b7355] hover:text-[#f9f6f0] active:bg-[#8b7355] active:text-[#f9f6f0] transition-all duration-300 touch-manipulation"
+                                    >
+                                        Contactar
+                                    </button>
+                                </motion.div>
+
+                                {/* Año */}
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 1.3, duration: 0.8 }}
+                                    className="pt-4 sm:pt-8"
+                                >
+                                    <div className="w-12 sm:w-16 h-px bg-[#b89968] mx-auto mb-2 sm:mb-4"></div>
+                                    <p className="text-xs sm:text-sm text-[#8b7355] tracking-widest">
+                                        MMXXVI
+                                    </p>
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* CAPÍTULO I - SOBRE MÍ */}
+                <section id="about" className="w-screen h-screen overflow-y-auto px-4 sm:px-6 py-8 sm:py-16 md:py-24 bg-gradient-to-b from-[#f3ede3] to-[#ebe4d6] flex-shrink-0 snap-start">
+                    <div className="max-w-5xl mx-auto">
+                        <motion.div
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="bg-[#f9f6f0] border-2 sm:border-4 border-[#d4c4a8] shadow-xl p-6 sm:p-8 md:p-12 lg:p-16"
+                        >
+                            {/* Encabezado del capítulo */}
+                            <div className="mb-8 sm:mb-12 md:mb-16">
+                                <div className="flex items-center gap-3 sm:gap-4 md:gap-6 mb-3 sm:mb-4">
+                                    <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#b89968]/40" style={{ fontFamily: "'Playfair Display', serif" }}>I</span>
+                                    <div className="flex-1">
+                                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                            Sobre mí
+                                        </h2>
+                                        <p className="text-sm sm:text-base md:text-lg text-[#5a4a3a] italic">Capítulo Primero</p>
                                     </div>
                                 </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Habilidades - Grid con efectos de neón */}
-            <section id="skills" className="relative bg-gradient-to-b from-black via-slate-900 to-black text-white px-6 py-32">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-20">
-                        <h2 className="text-4xl md:text-5xl font-black mb-6">
-                            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                                HABILIDADES
-                            </span>
-                        </h2>
-                        <div className="w-32 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                        {skills.map((skill, index) => (
-                            <motion.div
-                                key={skill.name}
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.4, delay: index * 0.05 }}
-                                whileHover={{ y: -8, scale: 1.05 }}
-                                className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-800/90 to-black/90 border-2 border-cyan-500/20 p-8 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.1)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] transition-all duration-200 hover:border-cyan-400"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/20 group-hover:to-blue-500/20 rounded-2xl transition-all duration-500"></div>
-                                <img 
-                                    src={skill.icon} 
-                                    alt={skill.name} 
-                                    className="w-20 h-20 mb-4 transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12 relative z-10 filter drop-shadow-[0_0_20px_rgba(6,182,212,0.6)]" 
-                                />
-                                <span className="text-sm font-black text-slate-300 group-hover:text-cyan-400 transition-colors relative z-10 uppercase tracking-wider">
-                                    {skill.name}
-                                </span>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Contacto - Diseño futurista */}
-            <section id="contact" className="relative bg-black text-white px-6 py-32">
-                <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-20">
-                        <h2 className="text-4xl md:text-5xl font-black mb-6">
-                            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                                CONTACTO
-                            </span>
-                        </h2>
-                        <p className="text-slate-400 text-xl mb-4">¿Tienes un proyecto en mente? ¡Hablemos!</p>
-                        <div className="w-32 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-                        <a
-                            href="mailto:victorjhr2211@gmail.com"
-                            className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 p-12 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.6)] transition-all duration-200 hover:-translate-y-2 hover:scale-102"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/20 group-hover:to-blue-500/20 rounded-3xl transition-all duration-500"></div>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-cyan-400 mb-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 relative z-10 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                                <polyline points="22,6 12,13 2,6" />
-                            </svg>
-                            <span className="text-cyan-400 font-black text-xl mb-2 relative z-10">EMAIL</span>
-                            <span className="text-slate-400 text-sm relative z-10">victorjhr2211@gmail.com</span>
-                        </a>
-
-                        <a
-                            href="https://www.linkedin.com/in/victor-jose-hernandez-reyes-859509233/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 p-12 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.6)] transition-all duration-200 hover:-translate-y-2 hover:scale-102"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/20 group-hover:to-blue-500/20 rounded-3xl transition-all duration-500"></div>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="w-16 h-16 text-cyan-400 mb-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 relative z-10 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]" fill="currentColor">
-                                <path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.6 0 53.5 0 23.1 24.56 0 54.77 0s53.61 23.1 53.61 53.5c0 30.1-24.56 54.6-54.59 54.6zm394.2 339.9h-92.4V302.4c0-34.7-.7-79.3-48.3-79.3-48.3 0-55.7 37.7-55.7 76.6v148.3h-92.6V148.9h88.9v40.8h1.3c12.4-23.4 42.6-48.3 87.7-48.3 93.8 0 111.1 61.8 111.1 142.3V448z" />
-                            </svg>
-                            <span className="text-cyan-400 font-black text-xl mb-2 relative z-10">LINKEDIN</span>
-                            <span className="text-slate-400 text-sm relative z-10">Conectemos</span>
-                        </a>
-
-                        <a
-                            href="https://github.com/victor-j10"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/90 to-black/90 border-2 border-cyan-500/30 p-12 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:shadow-[0_0_80px_rgba(6,182,212,0.6)] transition-all duration-200 hover:-translate-y-2 hover:scale-102"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/20 group-hover:to-blue-500/20 rounded-3xl transition-all duration-500"></div>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-cyan-400 mb-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 relative z-10 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.68-.22.68-.48 0-.24-.01-.87-.01-1.71-2.78.61-3.37-1.34-3.37-1.34-.45-1.16-1.1-1.47-1.1-1.47-.9-.61.07-.6.07-.6 1 .07 1.53 1.02 1.53 1.02.89 1.52 2.34 1.08 2.91.82.09-.65.35-1.08.64-1.33-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.02-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85.004 1.71.115 2.51.34 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.02 1.59 1.02 2.68 0 3.85-2.34 4.7-4.57 4.94.36.31.69.92.69 1.86 0 1.34-.01 2.42-.01 2.75 0 .27.18.59.7.48A10 10 0 0 0 22 12c0-5.52-4.48-10-10-10z" />
-                            </svg>
-                            <span className="text-cyan-400 font-black text-xl mb-2 relative z-10">GITHUB</span>
-                            <span className="text-slate-400 text-sm relative z-10">Ver repositorios</span>
-                        </a>
-                    </div>
-                </div>
-            </section>
-
-            {/* Modal de Experiencia */}
-            {selectedExperience && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90"
-                    onClick={() => setSelectedExperience(null)}
-                >
-                    <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="relative bg-gradient-to-br from-slate-900 to-black border-2 border-cyan-500/30 rounded-3xl p-8 md:p-10 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_80px_rgba(6,182,212,0.5)]"
-                    >
-                        {/* Botón cerrar */}
-                        <button
-                            onClick={() => setSelectedExperience(null)}
-                            className="absolute top-6 right-6 text-slate-400 hover:text-cyan-400 transition-colors z-10"
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-
-                        {/* Contenido del modal */}
-                        <div className="pr-8">
-                            <div className="text-cyan-400 font-black text-sm mb-3 uppercase tracking-wider">
-                                {selectedExperience.period}
-                            </div>
-                            <h3 className="text-3xl md:text-4xl font-black text-white mb-3">
-                                {selectedExperience.title}
-                            </h3>
-                            <div className="text-blue-400 font-bold text-xl mb-8">
-                                {selectedExperience.company}
+                                <div className="w-24 sm:w-32 md:w-40 h-1 bg-[#b89968]"></div>
                             </div>
 
-                            <div className="mb-8">
-                                <h4 className="text-cyan-400 font-black text-lg mb-4 uppercase tracking-wider">
-                                    Responsabilidades
-                                </h4>
-                                <ul className="space-y-3">
-                                    {selectedExperience.responsibilities.map((responsibility, index) => (
-                                        <li key={index} className="flex items-start text-slate-300 leading-relaxed">
-                                            <span className="text-cyan-400 mr-3 mt-1">▹</span>
-                                            <span>{responsibility}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                            {/* Contenido del capítulo */}
+                            <div className="space-y-6 sm:space-y-8 md:space-y-12">
+                                {/* Introducción */}
+                                <div className="prose prose-lg max-w-none">
+                                    <p className="text-base sm:text-lg md:text-xl leading-relaxed text-[#2a1f14] first-letter:text-4xl sm:first-letter:text-5xl md:first-letter:text-6xl first-letter:font-bold first-letter:text-[#8b7355] first-letter:float-left first-letter:mr-2 sm:first-letter:mr-3 first-letter:mt-1" style={{ fontFamily: "'Crimson Text', serif" }}>
+                                        Ingeniero de Sistemas con experiencia comprobada en desarrollo web Full Stack. Mi trayectoria 
+                                        profesional abarca el dominio de múltiples paradigmas de programación y tecnologías de vanguardia, 
+                                        incluyendo JavaScript, TypeScript, PHP, Python, Java, y frameworks modernos como React, Angular, 
+                                        Next.js, Vue.js y Laravel.
+                                    </p>
+                                </div>
 
-                            <div className="pt-6 border-t border-cyan-500/20">
-                                <h4 className="text-slate-400 text-sm mb-4 uppercase tracking-wider">
-                                    Tecnologías utilizadas
-                                </h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {selectedExperience.technologies.map((tech) => (
-                                        <span
-                                            key={tech}
-                                            className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-cyan-400 text-sm font-bold"
-                                        >
-                                            {tech}
-                                        </span>
-                                    ))}
+                                {/* Secciones en columnas */}
+                                <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mt-6 sm:mt-8 md:mt-12">
+                                    {/* Experiencia */}
+                                    <div className="bg-[#ebe4d6] border-l-4 border-[#b89968] p-4 sm:p-6 md:p-8 rounded-r-lg">
+                                        <h3 className="text-xl sm:text-2xl font-bold text-[#2a1f14] mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                            <span className="text-[#b89968]">§</span> Experiencia
+                                        </h3>
+                                        <p className="text-sm sm:text-base text-[#2a1f14] leading-relaxed">
+                                            Especializado en el desarrollo de aplicaciones funcionales, escalables y bien estructuradas. 
+                                            Competente en arquitecturas frontend y backend, gestión de bases de datos SQL y NoSQL, 
+                                            diseño e implementación de APIs RESTful, control de versiones con Git, y despliegue en 
+                                            entornos cloud y on-premise.
+                                        </p>
+                                    </div>
+
+                                    {/* Sectores */}
+                                    <div className="bg-[#ebe4d6] border-l-4 border-[#b89968] p-4 sm:p-6 md:p-8 rounded-r-lg">
+                                        <h3 className="text-xl sm:text-2xl font-bold text-[#2a1f14] mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                            <span className="text-[#b89968]">§</span> Sectores
+                                        </h3>
+                                        <p className="text-sm sm:text-base text-[#2a1f14] leading-relaxed">
+                                            Experiencia diversificada en proyectos de alto impacto en sectores estratégicos: 
+                                            desarrollo de soluciones web modernas, automatización de procesos empresariales, 
+                                            aplicaciones para minería, sistemas de gestión de transporte y plataformas 
+                                            para el sector energético.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Filosofía - Destacado */}
+                                <div className="bg-gradient-to-br from-[#2a1f14] to-[#3d2f1f] text-[#f9f6f0] p-6 sm:p-8 md:p-10 rounded-lg shadow-xl mt-6 sm:mt-8 border-2 sm:border-4 border-[#8b7355]">
+                                    <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+                                        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-[#b89968] flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                                        </svg>
+                                        <div className="flex-1">
+                                            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                                Filosofía de Trabajo
+                                            </h3>
+                                            <p className="text-sm sm:text-base md:text-lg leading-relaxed italic">
+                                                Me apasiona escribir código limpio, elegante y mantenible. Busco constantemente 
+                                                aprender nuevas herramientas y tecnologías para crear soluciones prácticas que 
+                                                realmente funcionen. Disfruto trabajar en equipo, enfrentar desafíos técnicos complejos 
+                                                y contribuir al éxito de los proyectos con un enfoque riguroso en la calidad, 
+                                                el rendimiento y la sostenibilidad del código a largo plazo.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Datos rápidos */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mt-8 sm:mt-12 pt-8 sm:pt-12 border-t-2 border-[#d4c4a8]">
+                                    <div className="text-center">
+                                        <div className="text-3xl sm:text-4xl font-bold text-[#8b7355] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>1+</div>
+                                        <div className="text-xs sm:text-sm text-[#5a4a3a] uppercase tracking-wide">Años de experiencia</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-3xl sm:text-4xl font-bold text-[#8b7355] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>18+</div>
+                                        <div className="text-xs sm:text-sm text-[#5a4a3a] uppercase tracking-wide">Tecnologías</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-3xl sm:text-4xl font-bold text-[#8b7355] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>10+</div>
+                                        <div className="text-xs sm:text-sm text-[#5a4a3a] uppercase tracking-wide">Proyectos</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-3xl sm:text-4xl font-bold text-[#8b7355] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>3</div>
+                                        <div className="text-xs sm:text-sm text-[#5a4a3a] uppercase tracking-wide">Sectores</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* CAPÍTULO II - EXPERIENCIA */}
+                <section id="experience" className="w-screen h-screen overflow-y-auto px-4 sm:px-6 py-8 sm:py-16 md:py-24 bg-[#ebe4d6] flex-shrink-0 snap-start">
+                    <div className="max-w-5xl mx-auto">
+                        <motion.div
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="bg-[#f9f6f0] border-2 sm:border-4 border-[#d4c4a8] shadow-xl p-6 sm:p-8 md:p-12 lg:p-16"
+                        >
+                            {/* Encabezado del capítulo */}
+                            <div className="mb-8 sm:mb-12 md:mb-16">
+                                <div className="flex items-center gap-3 sm:gap-4 md:gap-6 mb-3 sm:mb-4">
+                                    <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#b89968]/40" style={{ fontFamily: "'Playfair Display', serif" }}>II</span>
+                                    <div className="flex-1">
+                                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                            Trayectoria Profesional
+                                        </h2>
+                                        <p className="text-sm sm:text-base md:text-lg text-[#5a4a3a] italic">Capítulo Segundo</p>
+                                    </div>
+                                </div>
+                                <div className="w-24 sm:w-32 md:w-40 h-1 bg-[#b89968]"></div>
+                            </div>
+
+                            {/* Timeline de experiencias */}
+                            <div className="space-y-6 sm:space-y-8 md:space-y-10">
+                                {experiences.map((experience, index) => (
+                                    <motion.div
+                                        key={experience.id}
+                                        initial={{ opacity: 0, x: -30 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.6, delay: index * 0.2 }}
+                                        className="relative"
+                                    >
+                                        {/* Línea de tiempo */}
+                                        {index < experiences.length - 1 && (
+                                            <div className="absolute left-4 sm:left-6 top-16 sm:top-20 bottom-0 w-0.5 bg-gradient-to-b from-[#b89968] to-transparent"></div>
+                                        )}
+
+                                        <div className="relative pl-12 sm:pl-16">
+                                            {/* Punto en la línea de tiempo */}
+                                            <div className="absolute left-0 top-4 sm:top-6 w-10 h-10 sm:w-12 sm:h-12 bg-[#8b7355] rounded-full flex items-center justify-center border-2 sm:border-4 border-[#f9f6f0] shadow-lg">
+                                                <span className="text-[#f9f6f0] font-bold text-xs sm:text-sm">{index + 1}</span>
+                                            </div>
+
+                                            <motion.div
+                                                whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(42, 31, 20, 0.15)' }}
+                                                onClick={() => setSelectedExperience(experience)}
+                                                className="bg-[#ebe4d6] border-2 border-[#d4c4a8] rounded-lg p-4 sm:p-6 md:p-8 cursor-pointer transition-all duration-300 touch-manipulation active:scale-[0.98]"
+                                            >
+                                                {/* Header de la experiencia */}
+                                                <div className="mb-4 sm:mb-6">
+                                                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                                                        <span className="text-xs sm:text-sm font-semibold text-[#8b7355] bg-[#f9f6f0] px-2 sm:px-3 py-1 rounded-full">
+                                                            {experience.period}
+                                                        </span>
+                                                        <span className="text-xs text-[#5a4a3a]">
+                                                            • {experience.duration}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#2a1f14] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                                        {experience.title}
+                                                    </h3>
+                                                    
+                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-[#5a4a3a]">
+                                                        <p className="text-base sm:text-lg font-semibold">{experience.company}</p>
+                                                        <span className="hidden sm:inline text-[#b89968]">•</span>
+                                                        <p className="text-xs sm:text-sm italic">{experience.sector}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Preview de responsabilidades */}
+                                                <div className="mb-3 sm:mb-4">
+                                                    <p className="text-sm sm:text-base text-[#2a1f14] leading-relaxed line-clamp-3">
+                                                        {experience.responsibilities[0]}
+                                                    </p>
+                                                </div>
+
+                                                {/* Call to action */}
+                                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 pt-3 sm:pt-4 border-t border-[#d4c4a8]">
+                                                    <span className="text-xs sm:text-sm text-[#8b7355] font-semibold hover:text-[#6d5a42] active:text-[#6d5a42] transition-colors flex items-center gap-2">
+                                                        Leer más 
+                                                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                    </span>
+                                                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                                                        {experience.technologies.slice(0, 3).map((tech) => (
+                                                            <span key={tech} className="text-xs bg-[#f9f6f0] text-[#5a4a3a] px-2 py-1 rounded">
+                                                                {tech}
+                                                            </span>
+                                                        ))}
+                                                        {experience.technologies.length > 3 && (
+                                                            <span className="text-xs bg-[#8b7355] text-[#f9f6f0] px-2 py-1 rounded">
+                                                                +{experience.technologies.length - 3}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* CAPÍTULO III - PROYECTOS */}
+                <section id="projects" className="w-screen h-screen overflow-y-auto px-4 sm:px-6 py-8 sm:py-16 md:py-24 bg-gradient-to-b from-[#ebe4d6] to-[#f3ede3] flex-shrink-0 snap-start">
+                    <div className="max-w-5xl mx-auto">
+                        <motion.div
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="bg-[#f9f6f0] border-2 sm:border-4 border-[#d4c4a8] shadow-xl p-6 sm:p-8 md:p-12 lg:p-16"
+                        >
+                            {/* Encabezado del capítulo */}
+                            <div className="mb-8 sm:mb-12 md:mb-16">
+                                <div className="flex items-center gap-3 sm:gap-4 md:gap-6 mb-3 sm:mb-4">
+                                    <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#b89968]/40" style={{ fontFamily: "'Playfair Display', serif" }}>III</span>
+                                    <div className="flex-1">
+                                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                            Obras Destacadas
+                                        </h2>
+                                        <p className="text-sm sm:text-base md:text-lg text-[#5a4a3a] italic">Capítulo Tercero</p>
+                                    </div>
+                                </div>
+                                <div className="w-24 sm:w-32 md:w-40 h-1 bg-[#b89968]"></div>
+                            </div>
+
+                            {/* Grid de proyectos */}
+                            <div className="space-y-6 sm:space-y-8 md:space-y-12">
+                                {projects.map((project, index) => (
+                                    <motion.article
+                                        key={index}
+                                        initial={{ opacity: 0, y: 30 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.6, delay: index * 0.2 }}
+                                        className="group"
+                                    >
+                                        <div className="grid md:grid-cols-5 gap-4 sm:gap-6 md:gap-8 bg-[#ebe4d6] border-2 border-[#d4c4a8] rounded-lg overflow-hidden hover:shadow-2xl transition-all duration-500">
+                                            {/* Imagen del proyecto */}
+                                            <div className="md:col-span-2 relative overflow-hidden bg-[#d4c4a8] min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-[#2a1f14]/20 to-transparent z-10"></div>
+                                                <motion.img
+                                                    src={project.image}
+                                                    alt={project.title}
+                                                    className="w-full h-full object-cover"
+                                                    whileHover={{ scale: 1.1 }}
+                                                    transition={{ duration: 0.6 }}
+                                                />
+                                                {/* Número del proyecto */}
+                                                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-[#8b7355] text-[#f9f6f0] w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl z-20 shadow-lg">
+                                                    {index + 1}
+                                                </div>
+                                            </div>
+
+                                            {/* Contenido del proyecto */}
+                                            <div className="md:col-span-3 p-4 sm:p-6 md:p-8 flex flex-col justify-between">
+                                                <div>
+                                                    <div className="mb-3 sm:mb-4">
+                                                        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                                            {project.title}
+                                                        </h3>
+                                                        <p className="text-xs sm:text-sm text-[#8b7355] italic">{project.subtitle}</p>
+                                                    </div>
+
+                                                    <p className="text-sm sm:text-base text-[#2a1f14] leading-relaxed mb-4 sm:mb-6">
+                                                        {project.description}
+                                                    </p>
+
+                                                    {/* Tecnologías */}
+                                                    <div className="mb-4 sm:mb-6">
+                                                        <p className="text-xs uppercase tracking-wide text-[#5a4a3a] mb-2 sm:mb-3 font-semibold">
+                                                            Stack Tecnológico
+                                                        </p>
+                                                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                                                            {project.tech.map((tech) => (
+                                                                <span 
+                                                                    key={tech} 
+                                                                    className="px-2 sm:px-3 py-1 bg-[#f9f6f0] border border-[#d4c4a8] rounded-full text-xs sm:text-sm text-[#2a1f14] font-medium"
+                                                                >
+                                                                    {tech}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Botones de acción */}
+                                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                                                    <a
+                                                        href={project.demo}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex-1 text-center bg-[#8b7355] text-[#f9f6f0] font-semibold text-sm sm:text-base px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:bg-[#6d5a42] active:bg-[#6d5a42] transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 touch-manipulation"
+                                                    >
+                                                        Ver Demo →
+                                                    </a>
+                                                    <a
+                                                        href={project.github}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex-1 text-center border-2 border-[#8b7355] text-[#2a1f14] font-semibold text-sm sm:text-base px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:bg-[#8b7355] hover:text-[#f9f6f0] active:bg-[#8b7355] active:text-[#f9f6f0] transition-all duration-300 touch-manipulation"
+                                                    >
+                                                        Código
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.article>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* CAPÍTULO IV - HABILIDADES */}
+                <section id="skills" className="w-screen h-screen overflow-y-auto px-4 sm:px-6 py-8 sm:py-16 md:py-24 bg-[#f3ede3] flex-shrink-0 snap-start">
+                    <div className="max-w-5xl mx-auto">
+                        <motion.div
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="bg-[#f9f6f0] border-2 sm:border-4 border-[#d4c4a8] shadow-xl p-6 sm:p-8 md:p-12 lg:p-16"
+                        >
+                            {/* Encabezado del capítulo */}
+                            <div className="mb-8 sm:mb-12 md:mb-16">
+                                <div className="flex items-center gap-3 sm:gap-4 md:gap-6 mb-3 sm:mb-4">
+                                    <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#b89968]/40" style={{ fontFamily: "'Playfair Display', serif" }}>IV</span>
+                                    <div className="flex-1">
+                                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                            Herramientas del Oficio
+                                        </h2>
+                                        <p className="text-sm sm:text-base md:text-lg text-[#5a4a3a] italic">Capítulo Cuarto</p>
+                                    </div>
+                                </div>
+                                <div className="w-24 sm:w-32 md:w-40 h-1 bg-[#b89968]"></div>
+                            </div>
+
+                            {/* Habilidades organizadas por categoría */}
+                            {['Frontend', 'Backend', 'Lenguajes', 'Bases de Datos', 'Herramientas'].map((category, catIndex) => {
+                                const categorySkills = skills.filter(skill => skill.category === category);
+                                if (categorySkills.length === 0) return null;
+
+                                return (
+                                    <motion.div
+                                        key={category}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.6, delay: catIndex * 0.1 }}
+                                        className="mb-8 sm:mb-10 md:mb-12 last:mb-0"
+                                    >
+                                        <h3 className="text-xl sm:text-2xl font-bold text-[#2a1f14] mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                            <span className="w-7 h-7 sm:w-8 sm:h-8 bg-[#8b7355] text-[#f9f6f0] rounded-full flex items-center justify-center text-xs sm:text-sm">
+                                                {catIndex + 1}
+                                            </span>
+                                            {category}
+                                        </h3>
+                                        
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                                            {categorySkills.map((skill, index) => (
+                                                <motion.div
+                                                    key={skill.name}
+                                                    initial={{ opacity: 0, scale: 0.8 }}
+                                                    whileInView={{ opacity: 1, scale: 1 }}
+                                                    viewport={{ once: true }}
+                                                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                                                    whileHover={{ y: -8, scale: 1.05 }}
+                                                    className="group bg-[#ebe4d6] border-2 border-[#d4c4a8] rounded-lg p-3 sm:p-4 md:p-6 text-center hover:border-[#8b7355] hover:shadow-xl transition-all duration-300"
+                                                >
+                                                    <div className="mb-2 sm:mb-4 flex justify-center">
+                                                        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center">
+                                                            <img 
+                                                                src={skill.icon} 
+                                                                alt={skill.name} 
+                                                                className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110" 
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-xs sm:text-sm font-semibold text-[#2a1f14]">
+                                                        {skill.name}
+                                                    </p>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* CAPÍTULO V - CONTACTO (EPÍLOGO) */}
+                <section id="contact" className="w-screen h-screen overflow-y-auto px-4 sm:px-6 py-8 sm:py-16 md:py-24 bg-gradient-to-b from-[#f3ede3] to-[#ebe4d6] flex-shrink-0 snap-start">
+                    <div className="max-w-5xl mx-auto">
+                        <motion.div
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="bg-[#f9f6f0] border-2 sm:border-4 border-[#d4c4a8] shadow-xl p-6 sm:p-8 md:p-12 lg:p-16"
+                        >
+                            {/* Encabezado del capítulo */}
+                            <div className="mb-8 sm:mb-12 md:mb-16">
+                                <div className="flex items-center gap-3 sm:gap-4 md:gap-6 mb-3 sm:mb-4">
+                                    <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#b89968]/40" style={{ fontFamily: "'Playfair Display', serif" }}>V</span>
+                                    <div className="flex-1">
+                                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                            Epílogo
+                                        </h2>
+                                        <p className="text-sm sm:text-base md:text-lg text-[#5a4a3a] italic">Capítulo Final - Conectemos</p>
+                                    </div>
+                                </div>
+                                <div className="w-24 sm:w-32 md:w-40 h-1 bg-[#b89968]"></div>
+                            </div>
+
+                            {/* Mensaje personal */}
+                            <div className="mb-8 sm:mb-10 md:mb-12">
+                                <div className="bg-[#ebe4d6] border-l-4 border-[#8b7355] p-4 sm:p-6 md:p-8 rounded-r-lg mb-4 sm:mb-6 md:mb-8">
+                                    <p className="text-base sm:text-lg md:text-xl leading-relaxed text-[#2a1f14] italic">
+                                        "Cada proyecto es una nueva página en blanco esperando ser escrita con código elegante y soluciones innovadoras. 
+                                        Si tienes un desafío técnico o una idea que necesita cobrar vida, estoy listo para colaborar."
+                                    </p>
+                                </div>
+                                
+                                <p className="text-sm sm:text-base md:text-lg text-[#5a4a3a] text-center mb-6 sm:mb-8">
+                                    Estoy disponible para nuevas oportunidades, colaboraciones y conversaciones interesantes.
+                                </p>
+                            </div>
+
+                            {/* Opciones de contacto */}
+                            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-10 md:mb-12">
+                                <motion.a
+                                    href="mailto:victorjhr2211@gmail.com"
+                                    whileHover={{ y: -6, boxShadow: '0 20px 40px rgba(42, 31, 20, 0.15)' }}
+                                    className="group bg-[#ebe4d6] border-2 border-[#d4c4a8] rounded-lg p-4 sm:p-6 md:p-8 text-center hover:border-[#8b7355] active:border-[#8b7355] transition-all duration-300 touch-manipulation"
+                                >
+                                    <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto mb-3 sm:mb-4 bg-[#8b7355] rounded-full flex items-center justify-center group-hover:bg-[#6d5a42] group-active:bg-[#6d5a42] transition-colors">
+                                        <svg className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#f9f6f0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-lg sm:text-xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                        Email
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-[#5a4a3a] break-all">
+                                        victorjhr2211@gmail.com
+                                    </p>
+                                </motion.a>
+
+                                <motion.a
+                                    href="https://www.linkedin.com/in/victor-jose-hernandez-reyes-859509233/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    whileHover={{ y: -6, boxShadow: '0 20px 40px rgba(42, 31, 20, 0.15)' }}
+                                    className="group bg-[#ebe4d6] border-2 border-[#d4c4a8] rounded-lg p-4 sm:p-6 md:p-8 text-center hover:border-[#8b7355] active:border-[#8b7355] transition-all duration-300 touch-manipulation"
+                                >
+                                    <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto mb-3 sm:mb-4 bg-[#8b7355] rounded-full flex items-center justify-center group-hover:bg-[#6d5a42] group-active:bg-[#6d5a42] transition-colors">
+                                        <svg className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#f9f6f0]" fill="currentColor" viewBox="0 0 448 512">
+                                            <path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"/>
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-lg sm:text-xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                        LinkedIn
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-[#5a4a3a]">
+                                        Conecta conmigo
+                                    </p>
+                                </motion.a>
+
+                                <motion.a
+                                    href="https://github.com/victor-j10"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    whileHover={{ y: -6, boxShadow: '0 20px 40px rgba(42, 31, 20, 0.15)' }}
+                                    className="group bg-[#ebe4d6] border-2 border-[#d4c4a8] rounded-lg p-4 sm:p-6 md:p-8 text-center hover:border-[#8b7355] active:border-[#8b7355] transition-all duration-300 touch-manipulation sm:col-span-2 md:col-span-1"
+                                >
+                                    <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto mb-3 sm:mb-4 bg-[#8b7355] rounded-full flex items-center justify-center group-hover:bg-[#6d5a42] group-active:bg-[#6d5a42] transition-colors">
+                                        <svg className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#f9f6f0]" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-lg sm:text-xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                        GitHub
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-[#5a4a3a]">
+                                        Explora mi código
+                                    </p>
+                                </motion.a>
+                            </div>
+
+                            {/* Cierre del libro */}
+                            <div className="text-center pt-8 sm:pt-10 md:pt-12 border-t-2 border-[#d4c4a8]">
+                                <p className="text-xs sm:text-sm text-[#5a4a3a] italic mb-3 sm:mb-4">
+                                    "El fin es solo el comienzo de una nueva historia"
+                                </p>
+                                <div className="flex justify-center items-center gap-2 sm:gap-3 text-[#8b7355]">
+                                    <div className="w-12 sm:w-16 h-px bg-[#b89968]"></div>
+                                    <span className="text-xl sm:text-2xl">❖</span>
+                                    <div className="w-12 sm:w-16 h-px bg-[#b89968]"></div>
+                                </div>
+                                <p className="text-xs text-[#8b7355] mt-4 sm:mt-6 tracking-widest">
+                                    VICTOR JOSÉ HERNÁNDEZ • MMXXVI
+                                </p>
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+            </main>
+
+            {/* Modal de experiencia detallada */}
+            <AnimatePresence>
+                {selectedExperience && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2a1f14]/70 backdrop-blur-md"
+                        onClick={() => setSelectedExperience(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 40 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 40 }}
+                            transition={{ type: 'spring', damping: 25 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="relative bg-[#f9f6f0] border-2 sm:border-4 border-[#8b7355] rounded-lg p-4 sm:p-6 md:p-10 lg:p-12 max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl mx-2 sm:mx-4"
+                        >
+                            {/* Decoración esquinas */}
+                            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 w-6 h-6 sm:w-8 sm:h-8 border-t-2 border-l-2 border-[#b89968]"></div>
+                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 w-6 h-6 sm:w-8 sm:h-8 border-t-2 border-r-2 border-[#b89968]"></div>
+                            <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 w-6 h-6 sm:w-8 sm:h-8 border-b-2 border-l-2 border-[#b89968]"></div>
+                            <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-6 h-6 sm:w-8 sm:h-8 border-b-2 border-r-2 border-[#b89968]"></div>
+
+                            {/* Botón cerrar */}
+                            <button
+                                onClick={() => setSelectedExperience(null)}
+                                className="absolute top-3 right-3 sm:top-4 sm:right-4 md:top-6 md:right-6 text-[#5a4a3a] hover:text-[#2a1f14] active:text-[#2a1f14] transition-colors z-10 bg-[#ebe4d6] rounded-full p-1.5 sm:p-2 hover:bg-[#d4c4a8] active:bg-[#d4c4a8] touch-manipulation"
+                            >
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+
+                            {/* Contenido */}
+                            <div className="pr-8 sm:pr-10 md:pr-12">
+                                {/* Header */}
+                                <div className="mb-6 sm:mb-8">
+                                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                                        <span className="text-xs sm:text-sm font-semibold text-[#8b7355] bg-[#ebe4d6] px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
+                                            {selectedExperience.period}
+                                        </span>
+                                        <span className="text-xs sm:text-sm text-[#5a4a3a]">
+                                            • {selectedExperience.duration}
+                                        </span>
+                                    </div>
+                                    
+                                    <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#2a1f14] mb-2 sm:mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                        {selectedExperience.title}
+                                    </h3>
+                                    
+                                    <div className="flex flex-col gap-1 sm:gap-2 text-[#5a4a3a]">
+                                        <p className="text-lg sm:text-xl font-semibold">{selectedExperience.company}</p>
+                                        <p className="text-sm sm:text-base italic">{selectedExperience.sector}</p>
+                                    </div>
+                                </div>
+
+                                <div className="w-16 sm:w-20 md:w-24 h-1 bg-[#b89968] mb-6 sm:mb-8"></div>
+
+                                {/* Responsabilidades */}
+                                <div className="mb-8 sm:mb-10">
+                                    <h4 className="text-xl sm:text-2xl font-bold text-[#2a1f14] mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                        <span className="text-[#b89968]">§</span>
+                                        Responsabilidades y Logros
+                                    </h4>
+                                    <div className="space-y-3 sm:space-y-4">
+                                        {selectedExperience.responsibilities.map((responsibility, index) => (
+                                            <motion.div
+                                                key={index}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: index * 0.1 }}
+                                                className="flex items-start gap-3 sm:gap-4 bg-[#ebe4d6] p-3 sm:p-4 rounded-lg border-l-4 border-[#b89968]"
+                                            >
+                                                <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-[#8b7355] text-[#f9f6f0] rounded-full flex items-center justify-center text-xs sm:text-sm font-bold mt-0.5 sm:mt-1">
+                                                    {index + 1}
+                                                </span>
+                                                <p className="text-sm sm:text-base text-[#2a1f14] leading-relaxed flex-1">
+                                                    {responsibility}
+                                                </p>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Tecnologías */}
+                                <div className="pt-6 sm:pt-8 border-t-2 border-[#d4c4a8]">
+                                    <h4 className="text-lg sm:text-xl font-bold text-[#2a1f14] mb-3 sm:mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                        Stack Tecnológico
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2 sm:gap-3">
+                                        {selectedExperience.technologies.map((tech, index) => (
+                                            <motion.span
+                                                key={tech}
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: index * 0.05 }}
+                                                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#8b7355] text-[#f9f6f0] rounded-full text-xs sm:text-sm font-medium shadow-sm"
+                                            >
+                                                {tech}
+                                            </motion.span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
                     </motion.div>
-                </motion.div>
-            )}
-        </>
-    )
-}
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
