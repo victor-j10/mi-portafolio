@@ -308,7 +308,7 @@ export const Home = () => {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-6">
                         <a
-                            href="/Hoja-de-vida-2026.pdf"
+                            href="/Hoja_de_vida_2026.pdf"
                             target="_blank"
                             className="group relative px-10 py-5 text-lg font-bold text-black bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_40px_rgba(6,182,212,0.6)] hover:scale-105"
                         >
