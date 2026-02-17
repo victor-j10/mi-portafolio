@@ -347,7 +347,7 @@ export const Home = () => {
                                     className="space-y-3 sm:space-y-4 md:space-y-6"
                                 >
                                     <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-[#2a1f14] tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                                        Victor José<br />Hernández
+                                        Victor<br />Hernández
                                     </h1>
                                     
                                     <div className="space-y-2 sm:space-y-3">
@@ -879,9 +879,6 @@ export const Home = () => {
                                     <h3 className="text-lg sm:text-xl font-bold text-[#2a1f14] mb-1 sm:mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
                                         Email
                                     </h3>
-                                    <p className="text-xs sm:text-sm text-[#5a4a3a] break-all">
-                                        victorjhr2211@gmail.com
-                                    </p>
                                 </motion.a>
 
                                 <motion.a
