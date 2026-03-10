@@ -110,7 +110,7 @@ export const Home = () => {
             subtitle: "En desarrollo continuo",
             description: "Aplicación web para el registro y seguimiento de rutinas de entrenamiento, hábitos diarios y progreso personal. Implementa una arquitectura moderna con React en el frontend, estilizado con Tailwind CSS, y un backend robusto construido con Node.js y Express.",
             image: "/images/osito-grizzly.png",
-            demo: "https://grizzlyfit-tracker.vercel.app/",
+            demo: "https://fit-tracker.grizzlyhubs.xyz/",
             github: "https://github.com/victor-j10",
             tech: ["React", "Tailwind", "Node.js", "Express"]
         },
