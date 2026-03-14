@@ -58,7 +58,7 @@ const projects = [
     title: "Biblioteca",
     tag: "Gestor de biblioteca",
     description: "Aplicación web para el registro y reserva de libros. Arquitectura moderna con Django, Django Rest Framework y Python.",
-    image: "/images/osito-grizzly.png",
+    image: "/images/osito-gestion-grizzly.png",
     demo: "https://biblioteca.grizzlyhubs.xyz/",
     github: "https://github.com/victor-j10/biblioteca-django",
     tech: ["Django", "Django Framework Rest", "Python"],
