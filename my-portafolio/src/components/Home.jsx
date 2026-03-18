@@ -64,7 +64,7 @@ const projects = [
     tech: ["Django", "Django Framework Rest", "Python"],
     color: COLORS.teal,
   },
-  {
+  /* {
     title: "To Do List",
     tag: "Gestión de tareas",
     description: "Sistema de gestión de tareas con Angular, SCSS, Angular Material y MockAPI para simular operaciones backend. Implementa CRUD completo y gestión de estado eficiente.",
@@ -73,7 +73,7 @@ const projects = [
     github: "https://github.com/victor-j10/to-do-list",
     tech: ["Angular", "SCSS", "Material", "MockAPI"],
     color: COLORS.accent,
-  },
+  }, */
 ];
 
 const experiences = [
